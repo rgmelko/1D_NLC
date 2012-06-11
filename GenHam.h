@@ -38,17 +38,8 @@ class GENHAM{
     //double at(const int , const int );
     Array<double,1> apply(const Array<double,1>&);
 
-    void Bonds_16A();
     void Bonds_16B();
-    void Bonds_18A();
-    void Bonds_20A();
-    void Bonds_22A();
-    void Bonds_24A();
-    void Bonds_24R();
-    void Bonds_26A();
-    void Bonds_30R();
     void SparseHamJQ();
-    void FullHamJQ();
 
   private:
     int Nsite; //number sites

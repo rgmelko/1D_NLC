@@ -67,102 +67,6 @@ void GENHAM::printg()
 
 
 //----------------------------------------------------------
-void GENHAM::FullHamJQ(){
-
-  int ii, tempI;
-  vector<long> revBas(Fdim,-1);
-
-  for (ii=0; ii<Basis.size(); ii++) { //reverse lookup
-    tempI = Basis.at(ii);
-    revBas.at(tempI) = ii;
-  }
-    
-  Ham.resize(Vdim,Vdim);
-  Ham = 0;
-
-  unsigned long tempi, tempj, tempod;
-  double tempD;
-  int si,sj,sk,sl, revPos;
-  for (ii=0; ii<Basis.size(); ii++){
-    tempi = Basis.at(ii);
-
-    //Hamiltonian for diagonal
-    tempD = (*this).HdiagPart(tempi);
-    Ham(ii,ii) = tempD;
-
-    for (int T0=0; T0<Nsite; T0++){ // Now generate off-diagonal part
-
-      si = PlaqX(T0,0); //si = Bond(T0,0);
-      //if (si != T0) cout<<"Square error \n";
-      // X Bond
-      tempod = tempi;
-      sj = PlaqX(T0,1); //sj = Bond(T0,1);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      revPos = revBas.at(tempod);
-      if (revPos != -1){
-        tempD = (*this).HOFFdBondX(T0,tempi);
-        Ham(ii,revPos) = tempD;
-      }
-
-      // Y Bond
-      tempod = tempi;
-      sj = PlaqX(T0,3); //sj = Bond(T0,2);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      revPos = revBas.at(tempod);
-      if (revPos != -1){
-        tempD = (*this).HOFFdBondY(T0,tempi);
-        Ham(ii,revPos) = tempD;
-      }
-
-      //Next-nearest neighbor bonds: J2
-        //bond 0,2
-      si = PlaqX(T0,0);
-      tempod = tempi;
-      sj = PlaqX(T0,2); //sj = Bond(T0,1);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      revPos = revBas.at(tempod);
-      if (revPos != -1){
-        tempD = (*this).HOFFdBond_02(T0,tempi);
-        Ham(ii,revPos) = tempD;
-      }
-        //bond 1,3
-      si = PlaqX(T0,1);
-      tempod = tempi;
-      sj = PlaqX(T0,3); //sj = Bond(T0,1);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      revPos = revBas.at(tempod);
-      if (revPos != -1){
-        tempD = (*this).HOFFdBond_13(T0,tempi);
-        Ham(ii,revPos) = tempD;
-      }
-
-      // Square Plaquette
-      tempod = tempi;
-      si = PlaqX(T0,0);
-      sj = PlaqX(T0,1);
-      sk = PlaqX(T0,2);
-      sl = PlaqX(T0,3);
-      tempod ^= (1<<si);   //toggle bits 
-      tempod ^= (1<<sj);   
-      tempod ^= (1<<sk);   
-      tempod ^= (1<<sl);   
-      revPos = revBas.at(tempod);
-      if (revPos != -1){ 
-        tempD = (*this).HOFFdPlaq(T0,tempi);
-        Ham(ii,revPos) = tempD;
-      }
-
-    }//si
-
-  }//ii
-
-}//FullHamHeis
-
-//----------------------------------------------------------
 void GENHAM::SparseHamJQ()
 {
   int ii, jj;
@@ -190,11 +94,11 @@ void GENHAM::SparseHamJQ()
 
     for (int T0=0; T0<Nsite; T0++){ //T0 is your square index
 
-      si = PlaqX(T0,0); //si = Bond(T0,0); //the lower left bond spin is not always T0
+      si = Bond(T0,0); //si = Bond(T0,0); //the lower left bond spin is not always T0
       //if (si != T0) cout<<"Square error 2\n";
       //-----2:   first bond (Horizontal)
       tempod = tempi;
-      sj = PlaqX(T0,1); //sj = Bond(T0,1);
+      sj = Bond(T0,1); //sj = Bond(T0,1);
       tempod ^= (1<<si);   //toggle bit 
       tempod ^= (1<<sj);   //toggle bit 
       //spin inversion symmmetry ---
@@ -210,7 +114,7 @@ void GENHAM::SparseHamJQ()
  
        //-----3:   second bond (Vertical)
       tempod = tempi;
-      sj = PlaqX(T0,3); //sj = Bond(T0,2);
+      sj = Bond(T0,2); //sj = Bond(T0,2);
       tempod ^= (1<<si);   //toggle bit 
       tempod ^= (1<<sj);   //toggle bit 
       //spin inversion symmmetry ---
@@ -224,63 +128,7 @@ void GENHAM::SparseHamJQ()
         tempH.push_back(tempD); 
       }
 
-      //Next-nearest neighbor bonds: J2
-        //bond 0,2
-      si = PlaqX(T0,0);
-      tempod = tempi;
-      sj = PlaqX(T0,2); //sj = Bond(T0,1);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      //spin inversion symmmetry ---
-      if ( ( SpinInv !=0) && (si == (Nsite-1) || sj == (Nsite-1 ) ) ) {
-          tempod = ~tempod;
-          tempod -= SpinInv;
-      } //--------------------------
-      if (BasPos.at(tempod) != -1 && BasPos.at(tempod) > ii){ 
-        tempBas.push_back(BasPos.at(tempod));
-        tempD = (*this).HOFFdBond_02(T0,tempi);
-        tempH.push_back(tempD); 
-
-      }
-        //bond 1,3
-      si = PlaqX(T0,1);
-      tempod = tempi;
-      sj = PlaqX(T0,3); //sj = Bond(T0,1);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      //spin inversion symmmetry ---
-      if ( ( SpinInv !=0) && (si == (Nsite-1) || sj == (Nsite-1 ) ) ) {
-          tempod = ~tempod;
-          tempod -= SpinInv;
-      } //--------------------------
-      if (BasPos.at(tempod) != -1 && BasPos.at(tempod) > ii){ 
-        tempBas.push_back(BasPos.at(tempod));
-        tempD = (*this).HOFFdBond_13(T0,tempi);
-        tempH.push_back(tempD); 
-      }
-
-       //-----4:   plaquette 
-      tempod = tempi;
-      si = PlaqX(T0,0);   //not always redundant here
-      sj = PlaqX(T0,1);  
-      sk = PlaqX(T0,2);
-      sl = PlaqX(T0,3);
-      tempod ^= (1<<si);   //toggle bits 
-      tempod ^= (1<<sj);   
-      tempod ^= (1<<sk);   
-      tempod ^= (1<<sl);   
-      //spin inversion symmetry ----
-      if ( ( SpinInv !=0) && (si == (Nsite-1) || sj == (Nsite-1 ) ||
-          sk == (Nsite-1) || sl == (Nsite-1 ) ) ) {
-          tempod = ~tempod;
-          tempod -= SpinInv;
-      } //--------------------------
-      if (BasPos.at(tempod) != -1 && BasPos.at(tempod) > ii){ 
-        tempBas.push_back(BasPos.at(tempod));
-        tempD = (*this).HOFFdPlaq(T0,tempi);
-        tempH.push_back(tempD); 
-      }
-
+  
     }//si
 
     tempBas.at(0) = tempBas.size()-1;
