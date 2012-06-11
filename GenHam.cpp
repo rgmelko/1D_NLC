@@ -21,11 +21,11 @@ GENHAM::GENHAM(const int Ns, const h_float J_, const h_float J2_, const h_float 
       temp = 0;
       for (int sp =0; sp<Nsite; sp++)
           temp += (i1>>sp)&1;  //unpack bra
-      if (temp==(Nsite/2+Sz) ){ 
+     // if (temp==(Nsite/2+Sz) ){ 
           Basis.push_back(i1);
           BasPos.at(i1)=Basis.size()-1;
           Vdim++;
-      }
+    //  }
   }//Dim
 
   cout<<"Vdim "<<Vdim<<" "<<Dim<<endl;
@@ -63,6 +63,7 @@ void GENHAM::SparseHamJQ()
   unsigned long tempi, tempj, tempod;
   int si, sj,sk,sl;
   double tempD;
+  int check(-99);
 
   for (ii=0; ii<Basis.size(); ii++){
     tempH.clear(); 
@@ -83,10 +84,13 @@ void GENHAM::SparseHamJQ()
       //if (si != T0) cout<<"Square error 2\n";
       //-----2:   first bond (Horizontal)
       tempod = tempi;
-      sj = Bond(T0,1); //sj = Bond(T0,1);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      if (BasPos.at(tempod) > ii){ //build only upper half of matrix
+      sj = Bond(T0,1); 
+      tempod = tempod^(1<<si);   //toggle bit 
+      tempod = tempod^(1<<sj);   //toggle bit 
+      
+	  check = ((tempod & (1<<si))>>si)+((tempod & (1<<sj))>>sj);
+
+	  if (check==1 && BasPos.at(tempod) > ii){ //build only upper half of matrix
         tempBas.push_back(BasPos.at(tempod));
         tempD = (*this).HOFFdBondX(T0,tempi);
         tempH.push_back(tempD); 
@@ -94,10 +98,13 @@ void GENHAM::SparseHamJQ()
  
        //-----3:   second bond (Vertical)
       tempod = tempi;
-      sj = Bond(T0,2); //sj = Bond(T0,2);
-      tempod ^= (1<<si);   //toggle bit 
-      tempod ^= (1<<sj);   //toggle bit 
-      if (BasPos.at(tempod) > ii){ 
+      sj = Bond(T0,2); 
+      tempod = tempod^(1<<si);   //toggle bit 
+      tempod = tempod^(1<<sj);   //toggle bit 
+	  
+	  check = ((tempod & (1<<si))>>si)+((tempod & (1<<sj))>>sj);
+
+      if (check==1 && BasPos.at(tempod) > ii){ 
         tempBas.push_back(BasPos.at(tempod));
         tempD = (*this).HOFFdBondY(T0,tempi);
         tempH.push_back(tempD); 
