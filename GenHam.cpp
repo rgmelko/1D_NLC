@@ -138,7 +138,6 @@ double GENHAM::HdiagPart(const long bra){
 
   int S0b,S1b ;  //spins (bra 
   int T0,T1;  //site
-  int s0p, s1p, s2p, s3p;
   double valH = 0;
 
   for (int Ti=0; Ti<Nsite; Ti++){
