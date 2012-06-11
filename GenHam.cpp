@@ -171,51 +171,15 @@ double GENHAM::HdiagPart(const long bra){
   for (int Ti=0; Ti<Nsite; Ti++){
     //***HEISENBERG PART
 
-    T0 = PlaqX(Ti,0); //T0 = Bond(Ti,0); //lower left spin
+    T0 = Bond(Ti,0); //T0 = Bond(Ti,0); //lower left spin
     S0b = (bra>>T0)&1;  
     //if (T0 != Ti) cout<<"Square error 3\n";
-    T1 = PlaqX(Ti,1); //T1 = Bond(Ti,1); //first bond
+    T1 = Bond(Ti,1); //T1 = Bond(Ti,1); //first bond
     S1b = (bra>>T1)&1;  //unpack bra
     valH += JJ*(S0b-0.5)*(S1b-0.5);
-    T1 = PlaqX(Ti,3); //T1 = Bond(Ti,2); //second bond
+    T1 = Bond(Ti,2); //T1 = Bond(Ti,2); //second bond
     S1b = (bra>>T1)&1;  //unpack bra
     valH += JJ*(S0b-0.5)*(S1b-0.5);
-
-    //Next-Nearest Neighbor part
-     //bond 0,2 
-    T0 = PlaqX(Ti,0); 
-    S0b = (bra>>T0)&1;
-    T1 = PlaqX(Ti,2);
-    S1b = (bra>>T1)&1; 
-    valH += J2*(S0b-0.5)*(S1b-0.5);
-     //bond 1,3
-    T0 = PlaqX(Ti,1); 
-    S0b = (bra>>T0)&1;
-    T1 = PlaqX(Ti,3);
-    S1b = (bra>>T1)&1;
-    valH += J2*(S0b-0.5)*(S1b-0.5);
-
-    //X Plaquettes
-    P0 = PlaqX(Ti,0);  //if (P0 != Ti) cout<<"ERROR \n";
-    s0p = (bra>>P0)&1;
-    P1 = PlaqX(Ti,1); 
-    s1p = (bra>>P1)&1;
-    P2 = PlaqX(Ti,2); 
-    s2p = (bra>>P2)&1;
-    P3 = PlaqX(Ti,3); 
-    s3p = (bra>>P3)&1;
-    valH += QQ* ((s0p-0.5)*(s1p-0.5) - 0.25) * ((s2p-0.5)*(s3p-0.5) - 0.25);
-
-    //Y Plaquettes  -rotate PlaqX 
-    P0 = PlaqX(Ti,1);
-    s0p = (bra>>P0)&1;
-    P1 = PlaqX(Ti,2); 
-    s1p = (bra>>P1)&1;
-    P2 = PlaqX(Ti,3); 
-    s2p = (bra>>P2)&1;
-    P3 = PlaqX(Ti,0); 
-    s3p = (bra>>P3)&1;
-    valH += QQ* ((s0p-0.5)*(s1p-0.5) - 0.25) * ((s2p-0.5)*(s3p-0.5) - 0.25);
 
   }//T0
 
@@ -275,58 +239,5 @@ double GENHAM::HOFFdBondY(const int si, const long bra){
 
 }//HOFFdPart
 
-//----------------------------------------------------------
-double GENHAM::HOFFdBond_02(const int si, const long bra){
 
-  double valH;
-
-  valH = J2*0.5; //contribution from the J2 part of the Hamiltonian
-
-  return valH;
-
-}//HOFFdPart
-
-//----------------------------------------------------------
-double GENHAM::HOFFdBond_13(const int si, const long bra){
-
-  double valH;
-
-  valH = J2*0.5; //contribution from the J2 part of the Hamiltonian
-
-  return valH;
-
-}//HOFFdPart
-
-//----------------------------------------------------------
-double GENHAM::HOFFdPlaq(const int si, const long bra){
-
-  int S0, S1, S2, S3;
-  int T0, T1, T2, T3;
-
-  double valH=0.0;
-
-  T0 = PlaqX(si,0);   //if (T0 != si) cout<<"ERROR \n";
-  S0 = (bra>>T0)&1;
-  T1 = PlaqX(si,1);
-  S1 = (bra>>T1)&1; // 
-  T2 = PlaqX(si,2); //   3  2 
-  S2 = (bra>>T2)&1; //   0  1
-  T3 = PlaqX(si,3); // 
-  S3 = (bra>>T3)&1;
-
-  //X-contribution to energy
-  //if ( (S0 != S1) && (S2 != S3) ) valH += QQ*0.25;
-  if  (S0 != S1) {
-    if  (S2 == S3) cout<<"P1 error \n";
-    valH += QQ*0.25;
-   }
-  //Y-contribution to energy
-  if (S0 != S3) {
-    if (S2 == S1) cout<<"P2 error \n";
-    valH += QQ*0.25;
-  }
-
-  return valH;
-
-}//HOFFdPart
 
