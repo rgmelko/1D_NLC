@@ -1,11 +1,9 @@
 /*******************************************************************
 Exact Diagonalization program (Lanczos and Complete)
-for AWS' J-Q model
-Roger Melko, November 2007
-J2 added for Complete Diagonalization only
+for use with Linked Cluster Expansion
+Roger Melko, Ann Kallin, June 2012
+baesd on a code from November 2007
 ********************************************************************/
-
-#define DO_LANCZOS //Lanczos or LAPACK full ED
 
 #include <fstream> 
 #include <vector> 
@@ -28,7 +26,6 @@ BZ_USING_NAMESPACE(blitz)
 
 int main(){
 
-
   PARAMS prm;
   double J;
   double J2;
@@ -48,7 +45,7 @@ int main(){
   LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
 
   HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-//  HV.printg();
+
   lancz.Diag(HV,prm.Neigen_,prm.valvec_); // second parameter: # of eigenvalues to converge
                       // third parameter: 1 for -values only, 2 for vals AND vectors
 

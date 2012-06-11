@@ -43,7 +43,6 @@ class GENHAM{
 
   private:
     int Nsite; //number sites
-    unsigned long SpinInv; //SpinInv integer = 0 for no spin inversion symmetry
 
 
     h_float JJ; //heisenberg exchange value
@@ -53,9 +52,6 @@ class GENHAM{
     double HdiagPart(const long);
     double HOFFdBondX(const int, const long);
     double HOFFdBondY(const int, const long);
-    double HOFFdBond_02(const int, const long);
-    double HOFFdBond_13(const int, const long);
-    double HOFFdPlaq(const int, const long);
 
 };
 

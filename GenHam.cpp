@@ -1,5 +1,4 @@
 #include "GenHam.h"
-//#define SPIN_INV 
 
 //----------------------------------------------------------
 GENHAM::GENHAM(const int Ns, const h_float J_, const h_float J2_, const h_float Q_, const int Sz)  
@@ -18,16 +17,7 @@ GENHAM::GENHAM(const int Ns, const h_float J_, const h_float J2_, const h_float 
   Vdim=0;
   unsigned long temp;    //create basis (16 site cluster)
 
-  //for spin iversion symmetry
-  //-------------------------
-  SpinInv = 0; //default: comment below to shut off
-#ifdef SPIN_INV
-  if (Sz == 0) {//set Spin Inversion symmetry on
-      SpinInv = ~ (Dim-1); //This sets this integer to the complement of the 0 bits
-      //cout<<SpinInv<<endl;
-  }
-  if (SpinInv != 0) Dim /= 2; //use only first half of Hilbert space
-#endif
+
   //-------------------------
 
   for (unsigned long i1=0; i1<Dim; i1++) 
@@ -101,11 +91,6 @@ void GENHAM::SparseHamJQ()
       sj = Bond(T0,1); //sj = Bond(T0,1);
       tempod ^= (1<<si);   //toggle bit 
       tempod ^= (1<<sj);   //toggle bit 
-      //spin inversion symmmetry ---
-      if ( ( SpinInv !=0) && (si == (Nsite-1) || sj == (Nsite-1 ) ) ) {
-          tempod = ~tempod;
-          tempod -= SpinInv;
-      } //--------------------------
       if (BasPos.at(tempod) != -1 && BasPos.at(tempod) > ii){ //build only upper half of matrix
         tempBas.push_back(BasPos.at(tempod));
         tempD = (*this).HOFFdBondX(T0,tempi);
@@ -117,11 +102,6 @@ void GENHAM::SparseHamJQ()
       sj = Bond(T0,2); //sj = Bond(T0,2);
       tempod ^= (1<<si);   //toggle bit 
       tempod ^= (1<<sj);   //toggle bit 
-      //spin inversion symmmetry ---
-      if ( ( SpinInv !=0) && (si == (Nsite-1) || sj == (Nsite-1 ) ) ) {
-          tempod = ~tempod;
-          tempod -= SpinInv;
-      } //--------------------------
       if (BasPos.at(tempod) != -1 && BasPos.at(tempod) > ii){ 
         tempBas.push_back(BasPos.at(tempod));
         tempD = (*this).HOFFdBondY(T0,tempi);
