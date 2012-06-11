@@ -57,7 +57,6 @@ void GENHAM::SparseHamJQ()
 {
   int ii, jj;
 
-  int Rsize;
   vector<long> tempBas;
   //vector<long> tempBas2;
   vector<h_float> tempH;
@@ -87,7 +86,7 @@ void GENHAM::SparseHamJQ()
       sj = Bond(T0,1); //sj = Bond(T0,1);
       tempod ^= (1<<si);   //toggle bit 
       tempod ^= (1<<sj);   //toggle bit 
-      if (BasPos.at(tempod) != -1 && BasPos.at(tempod) > ii){ //build only upper half of matrix
+      if (BasPos.at(tempod) > ii){ //build only upper half of matrix
         tempBas.push_back(BasPos.at(tempod));
         tempD = (*this).HOFFdBondX(T0,tempi);
         tempH.push_back(tempD); 
@@ -98,12 +97,11 @@ void GENHAM::SparseHamJQ()
       sj = Bond(T0,2); //sj = Bond(T0,2);
       tempod ^= (1<<si);   //toggle bit 
       tempod ^= (1<<sj);   //toggle bit 
-      if (BasPos.at(tempod) != -1 && BasPos.at(tempod) > ii){ 
+      if (BasPos.at(tempod) > ii){ 
         tempBas.push_back(BasPos.at(tempod));
         tempD = (*this).HOFFdBondY(T0,tempi);
         tempH.push_back(tempD); 
       }
-
   
     }//si
 
