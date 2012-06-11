@@ -15,7 +15,6 @@ typedef long double h_float;  //precision for Hamiltonian storage
 class GENHAM{
 
   public:
-    int Fdim; //"full" Hilbert space
     int Vdim; //dimenson of reduced Hilbert space
 
     vector<vector<long> > PosHam;
@@ -26,10 +25,6 @@ class GENHAM{
     vector<long> BasPos;
 
     Array<int,2> Bond;
-    Array<int,2> OtherTwoX; //sites on the plaquette that are not in bond
-    Array<int,2> OtherTwoY;
-    Array<int,2> PlaqX;
-    Array<int,2> PlaqY;
     
     Array<double,2> Ham;  //full hamiltonian
 

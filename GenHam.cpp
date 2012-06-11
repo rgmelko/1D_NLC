@@ -10,15 +10,11 @@ GENHAM::GENHAM(const int Ns, const h_float J_, const h_float J2_, const h_float 
 
   Dim = 2;  //  S=1/2 models : two states
   for (int ch=1; ch<Nsite; ch++) Dim *=2;
-  Fdim = Dim;
 
   BasPos.resize(Dim,-1); //initialization 
 
   Vdim=0;
   unsigned long temp;    //create basis (16 site cluster)
-
-
-  //-------------------------
 
   for (unsigned long i1=0; i1<Dim; i1++) 
   {
