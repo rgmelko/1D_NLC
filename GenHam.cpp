@@ -138,7 +138,6 @@ double GENHAM::HdiagPart(const long bra){
 
   int S0b,S1b ;  //spins (bra 
   int T0,T1;  //site
-  int P0, P1, P2, P3; //sites for plaquette (Q)
   int s0p, s1p, s2p, s3p;
   double valH = 0;
 
