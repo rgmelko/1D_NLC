@@ -165,8 +165,6 @@ double GENHAM::HdiagPart(const long bra){
 double GENHAM::HOFFdBondX(const int si, const long bra){
 
   double valH;
-  int S0, S1;
-  int T0, T1;
 
   valH = JJ*0.5; //contribution from the J part of the Hamiltonian
 
@@ -178,8 +176,6 @@ double GENHAM::HOFFdBondX(const int si, const long bra){
 double GENHAM::HOFFdBondY(const int si, const long bra){
 
   double valH;
-  int S0, S1;
-  int T0, T1;
 
   valH = JJ*0.5; //contribution from the J part of the Hamiltonian
 
