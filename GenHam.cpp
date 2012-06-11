@@ -198,18 +198,6 @@ double GENHAM::HOFFdBondX(const int si, const long bra){
 
   valH = JJ*0.5; //contribution from the J part of the Hamiltonian
 
-  T0 = OtherTwoX(si,0); //first other set (diagonal - Q) spin
-  T1 = OtherTwoX(si,1); 
-  S0 = (bra>>T0)&1;    //spin values base 0
-  S1 = (bra>>T1)&1;
-  valH += QQ*0.5*( (S0-0.5)*(S1-0.5) - 0.25);
-
-  T0 = OtherTwoX(si,2); //second other set (diagonal - Q) spin
-  T1 = OtherTwoX(si,3); 
-  S0 = (bra>>T0)&1;    //spin values base 0
-  S1 = (bra>>T1)&1;
-  valH += QQ*0.5*( (S0-0.5)*(S1-0.5) - 0.25);
-
   return valH;
 
 }//HOFFdPart
@@ -222,18 +210,6 @@ double GENHAM::HOFFdBondY(const int si, const long bra){
   int T0, T1;
 
   valH = JJ*0.5; //contribution from the J part of the Hamiltonian
-
-  T0 = OtherTwoY(si,0); //first other set (diagonal - Q) spin
-  T1 = OtherTwoY(si,1); 
-  S0 = (bra>>T0)&1;    //spin values base 0
-  S1 = (bra>>T1)&1;
-  valH += QQ*0.5*( (S0-0.5)*(S1-0.5) - 0.25);
-
-  T0 = OtherTwoY(si,2); //second other set (diagonal - Q) spin
-  T1 = OtherTwoY(si,3); 
-  S0 = (bra>>T0)&1;    //spin values base 0
-  S1 = (bra>>T1)&1;
-  valH += QQ*0.5*( (S0-0.5)*(S1-0.5) - 0.25);
 
   return valH;
 
