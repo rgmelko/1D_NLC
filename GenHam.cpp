@@ -63,7 +63,7 @@ void GENHAM::SparseHamJQ()
   unsigned long tempi, tempj, tempod;
   int si, sj,sk,sl;
   double tempD;
-  int check(-99);
+  int check(1);
 
   for (ii=0; ii<Basis.size(); ii++){
     tempH.clear(); 
@@ -84,31 +84,31 @@ void GENHAM::SparseHamJQ()
       //if (si != T0) cout<<"Square error 2\n";
       //-----2:   first bond (Horizontal)
       tempod = tempi;
-      sj = Bond(T0,1); 
+      // sj = Bond(T0,1); 
       tempod = tempod^(1<<si);   //toggle bit 
-      tempod = tempod^(1<<sj);   //toggle bit 
+      //tempod = tempod^(1<<sj);   //toggle bit 
       
-	  check = ((tempod & (1<<si))>>si)+((tempod & (1<<sj))>>sj);
+      //	  check = ((tempod & (1<<si))>>si)+((tempod & (1<<sj))>>sj);
 
-	  if (check==1 && BasPos.at(tempod) > ii){ //build only upper half of matrix
+      if (check==1 && BasPos.at(tempod) > ii){ //build only upper half of matrix
         tempBas.push_back(BasPos.at(tempod));
         tempD = (*this).HOFFdBondX(T0,tempi);
         tempH.push_back(tempD); 
       }
  
        //-----3:   second bond (Vertical)
-      tempod = tempi;
-      sj = Bond(T0,2); 
-      tempod = tempod^(1<<si);   //toggle bit 
-      tempod = tempod^(1<<sj);   //toggle bit 
+      // tempod = tempi;
+      //  sj = Bond(T0,2); 
+      // tempod = tempod^(1<<si);   //toggle bit 
+      // tempod = tempod^(1<<sj);   //toggle bit 
 	  
-	  check = ((tempod & (1<<si))>>si)+((tempod & (1<<sj))>>sj);
+      //	  check = ((tempod & (1<<si))>>si)+((tempod & (1<<sj))>>sj);
 
-      if (check==1 && BasPos.at(tempod) > ii){ 
-        tempBas.push_back(BasPos.at(tempod));
-        tempD = (*this).HOFFdBondY(T0,tempi);
-        tempH.push_back(tempD); 
-      }
+      // if (check==1 && BasPos.at(tempod) > ii){ 
+      //   tempBas.push_back(BasPos.at(tempod));
+      //   tempD = (*this).HOFFdBondY(T0,tempi);
+      //   tempH.push_back(tempD); 
+      //  }
   
     }//si
 
@@ -155,10 +155,12 @@ double GENHAM::HdiagPart(const long bra){
     //if (T0 != Ti) cout<<"Square error 3\n";
     T1 = Bond(Ti,1); //T1 = Bond(Ti,1); //first bond
     S1b = (bra>>T1)&1;  //unpack bra
-    valH += JJ*(S0b-0.5)*(S1b-0.5);
-    T1 = Bond(Ti,2); //T1 = Bond(Ti,2); //second bond
-    S1b = (bra>>T1)&1;  //unpack bra
-    valH += JJ*(S0b-0.5)*(S1b-0.5);
+    //    valH += JJ*(S0b-0.5)*(S1b-0.5);
+    valH += -JJ*2*(S0b-0.5)*2*(S1b-0.5);
+    //   T1 = Bond(Ti,2); //T1 = Bond(Ti,2); //second bond
+    //   S1b = (bra>>T1)&1;  //unpack bra
+    //    valH += JJ*(S0b-0.5)*(S1b-0.5);
+    //    valH += -JJ*(S0b)*(S1b);
 
   }//T0
 
@@ -173,7 +175,7 @@ double GENHAM::HOFFdBondX(const int si, const long bra){
 
   double valH;
 
-  valH = JJ*0.5; //contribution from the J part of the Hamiltonian
+  valH = -JJ; //contribution from the J part of the Hamiltonian
 
   return valH;
 
@@ -184,7 +186,7 @@ double GENHAM::HOFFdBondY(const int si, const long bra){
 
   double valH;
 
-  valH = JJ*0.5; //contribution from the J part of the Hamiltonian
+  valH = -JJ; //contribution from the J part of the Hamiltonian
 
   return valH;
 
