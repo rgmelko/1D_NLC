@@ -2,8 +2,13 @@
 ======
 
 A one-dimensional Numerical Linked Cluster program for the TFIM
-Ann testing!
 
+TODO:
+- 2D TFIM: should we have a different funcion for Lanczos and Heisenberg?
+- Change Lanczos conversion to depend on groundstate
+
+
+------------------------------------------------------------
 The original Lanczos was branched from this SVN repository:
 
 URL: svn://saskeram.cmt.uwaterloo.ca/Users/repos/projects/JQ_lanczos/trunk
