@@ -5,7 +5,7 @@ A one-dimensional Numerical Linked Cluster program for the TFIM
 
 TODO:
 - 2D TFIM: should we have a different funcion for Lanczos and Heisenberg?
-- Change Lanczos conversion to depend on groundstate
+- Change Lanczos convergence to depend on groundstate
 
 
 ------------------------------------------------------------
