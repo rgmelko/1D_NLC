@@ -1,12 +1,13 @@
 #include "GenHam.h"
 
 //----------------------------------------------------------
-GENHAM::GENHAM(const int Ns, const h_float J_, const h_float h_)  
-               : JJ(J_), hh(h_)
+GENHAM::GENHAM(const int Ns, const h_float J_, const h_float h_, vector <pair<int,int> > BBond_)  
+  : JJ(J_), hh(h_), Bond(BBond_)
 //create bases and determine dim of full Hilbert space
 {
   int Dim;
   Nsite = Ns;
+  
 
   Dim = 2;  //  S=1/2 models : two states
   for (int ch=1; ch<Nsite; ch++) Dim *=2;

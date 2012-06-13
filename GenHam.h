@@ -24,21 +24,20 @@ public:
   vector<long> Basis;
   vector<long> BasPos;
   
-  vector < pair <int, int> > Bond;
-  
   Array<double,2> Ham;  //full hamiltonian
   
-  GENHAM(const int N_ ,const h_float J_, const h_float h_); 
+  GENHAM(const int N_ ,const h_float J_, const h_float h_, vector < pair<int,int> > BBond_); 
   void printg();
   //double at(const int , const int );
   Array<double,1> apply(const Array<double,1>&);
+
   
-  void Bonds_16B();
   void SparseHamJQ();
   
 private:
   int Nsite; //number sites
   
+  vector< pair < int,int> > Bond;
 
     h_float JJ; //heisenberg exchange value
     h_float hh; //next-nearest neighbor exchange value
