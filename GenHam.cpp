@@ -1,8 +1,8 @@
 #include "GenHam.h"
 
 //----------------------------------------------------------
-GENHAM::GENHAM(const int Ns, const h_float J_, const h_float h_, const h_float Q_, const int Sz)  
-               : JJ(J_), hh(h_), QQ(Q_) 
+GENHAM::GENHAM(const int Ns, const h_float J_, const h_float h_)  
+               : JJ(J_), hh(h_)
 //create bases and determine dim of full Hilbert space
 {
   int Dim;

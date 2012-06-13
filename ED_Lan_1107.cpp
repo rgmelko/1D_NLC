@@ -28,17 +28,16 @@ BZ_USING_NAMESPACE(blitz)
 int main(){
 
   PARAMS prm;
+  double N;
   double J;
-  double h;
-  double Q;
-  int Sz;
-  
+  double h; 
+
+  N=prm.NN_;
   J=prm.JJ_;
   h=prm.hh_;
-  Q=-prm.QQ_;// SIGN HAS TO BE FLIPPED: NOW SIGN AT INPUT IS SAME AS PAPER 
-  Sz=prm.Sz_;
 
-  GENHAM HV(16,J,h,Q,Sz); 
+
+  GENHAM HV(16,J,h); 
   HV.Bonds_16B(); 
 
   //-------------------------EVERYTHING IN THIS BLOCK OF CODE FOR LANCZOS

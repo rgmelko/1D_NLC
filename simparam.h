@@ -8,11 +8,10 @@
 class PARAMS
 {
   public:
+    double NN_; //the number of lattice sites
     double JJ_; //the heisenberg exchange
     double hh_; //the next-nearest neighbor heisenberg exchange
-    double QQ_; //the 4-particle SU(2) exchange
-    int Sz_; // z-component of total spin
-    // FOR LANCZOS
+
     int Neigen_;    //: # of eigenvalues to converge
     int valvec_; //  1 for -values only, 2 for vals AND vectors
     // FULL_DIAG?
@@ -22,10 +21,9 @@ class PARAMS
       ifstream pfin;
       pfin.open("param.dat");
     
+      pfin >> NN_;
       pfin >> JJ_;
       pfin >> hh_;
-      pfin >> QQ_;
-      pfin >> Sz_;
       pfin >> Neigen_;
       pfin >> valvec_;
     

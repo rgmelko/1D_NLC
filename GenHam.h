@@ -28,7 +28,7 @@ public:
   
   Array<double,2> Ham;  //full hamiltonian
   
-  GENHAM(const int,const h_float J_, const h_float h_,const h_float Q_,const int Sz); 
+  GENHAM(const int N_ ,const h_float J_, const h_float h_); 
   void printg();
   //double at(const int , const int );
   Array<double,1> apply(const Array<double,1>&);
@@ -42,8 +42,7 @@ private:
 
     h_float JJ; //heisenberg exchange value
     h_float hh; //next-nearest neighbor exchange value
-    h_float QQ; //ring-exchange value
-
+  
     double HdiagPart(const long);
     double HOFFdBondX(const int, const long);
     double HOFFdBondY(const int, const long);
