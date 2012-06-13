@@ -165,13 +165,15 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 	  ss >> teststring;
 	  subSize++;
 	}
-
+	subSize/=2; // cout << subSize << endl;
+        ss.str("");
+        ss.clear();
 	ss << rawLines.at(currentLine+2);
-        tempGraph.SubgraphList.resize(5);
-        for(int b=0; b<5;b++){
+        tempGraph.SubgraphList.resize(subSize);
+        for(int b=0; b<subSize;b++){
           ss >> tempGraph.SubgraphList[b].first;
           ss >> tempGraph.SubgraphList[b].second;
-          //cout << tempGraph.AdjacencyList[b].first << "," <<tempGraph.AdjacencyList[b].second << endl;
+	  //  cout << tempGraph.SubgraphList[b].first << "," <<tempGraph.SubgraphList[b].second << endl;
         }
 
         ss.str("");
