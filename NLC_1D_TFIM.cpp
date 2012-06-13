@@ -38,8 +38,15 @@ int main(){
 
 
     vector< graph > fileGraphs; //graph objects
+    
+    vector<double> Weight;
 
     ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
+
+    Weight.push_back(-h); //Weight for site zero
+    double RunningSum = Weight[0];
+    cout<<RunningSum<<endl;
+
 
     for (int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
 
@@ -49,8 +56,17 @@ int main(){
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
         energy = lancz.Diag(HV, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
+        Weight.push_back(energy);
+        for (int j = 0; j<fileGraphs.at(i).SubgraphList.size(); j++)
+            Weight[i] -= fileGraphs.at(i).SubgraphList[j].second * Weight[fileGraphs.at(i).SubgraphList[j].first];
+
         cout<<"graph #"<<i;
         cout<<" energy "<<setprecision(12)<<energy<<endl;
+
+        cout<<"Weight["<<i<<"] = "<<Weight[i]<<endl;
+        RunningSum += Weight[i];
+        cout <<"RunningSum = "<< RunningSum;
+        cout<<endl;
 
     }
 
