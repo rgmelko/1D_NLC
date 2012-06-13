@@ -31,7 +31,7 @@ class LANCZOS{
 
    //Methods
    LANCZOS(const int);
-   void Diag(const GENHAM&, const int, const int);
+   double Diag(const GENHAM&, const int, const int);
    void tred3(Array<double,2>& , Array<double,1>& , Array<double,1>& e, const int );
 
 

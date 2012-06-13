@@ -27,6 +27,8 @@ BZ_USING_NAMESPACE(blitz)
 
 int main(){
 
+    double energy;
+
     PARAMS prm;  //Read parameters from param.dat  : see simparam.h
     double J;
     double h;
@@ -35,41 +37,23 @@ int main(){
     h=prm.hh_;
 
 
-    graph graph1;
-
-    vector< graph > fileGraphs;
+    vector< graph > fileGraphs; //graph objects
 
     ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
 
-    fileGraphs.at(15).print();
+    for (int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
 
-    //for( unsigned int currentGraph = 0; currentGraph < fileGraphs.size(); currentGraph++)
-    //{
-    //    fileGraphs.at(currentGraph).print();
-    //    if ( fileGraphs.at(currentGraph).Identifier == 16)
-    //    {
-    //        graph1 = fileGraphs.at(currentGraph);
-    //    }
-    //}
+        GENHAM HV(fileGraphs.at(i).NumberSites,J,h,fileGraphs.at(i).AdjacencyList); 
 
-    //graph1 = GetGraphFromFile(0,filename);
+        LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
+        HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
+        energy = lancz.Diag(HV, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
-  //Read in the first line of the graphs file
+        cout<<"graph #"<<i;
+        cout<<" energy "<<setprecision(12)<<energy<<endl;
 
-  GENHAM HV(fileGraphs.at(15).NumberSites,J,h,fileGraphs.at(15).AdjacencyList); 
+    }
 
-
-//  //-------------------------EVERYTHING IN THIS BLOCK OF CODE FOR LANCZOS
-//
-  LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
-//
-  HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-//
-  lancz.Diag(HV,prm.Neigen_,prm.valvec_); // second parameter: # of eigenvalues to converge
-//                      // third parameter: 1 for -values only, 2 for vals AND vectors
-
-
-
-  return 0;
+    return 0;
 
 }

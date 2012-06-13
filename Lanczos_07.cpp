@@ -7,7 +7,7 @@ LANCZOS::LANCZOS(const int Dim_) : Dim (Dim_)
   //Dim = Dim_;
 
   STARTIT = 5;
-  CONV_PREC = 1E-12;
+  CONV_PREC = 1E-10;
 
   Psi.resize(Dim_);
   V0.resize(Dim_); 
@@ -18,7 +18,7 @@ LANCZOS::LANCZOS(const int Dim_) : Dim (Dim_)
 }//constructor
 
 
-void LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
+double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
 // Reduces the Hamiltonian Matrix to a tri-diagonal form 
 {
   int ii, jj;
@@ -86,92 +86,93 @@ void LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
     Lexit = 0;   //exit flag
     E0 = 1.0;    //previous iteration GS eigenvalue
     while(Lexit != 1){
-      
-      iter++;
-      
-      //V2 = sum(Ham(i,j)*V1(j),j); // V2 = H |V1>    ?? //V2 -= beta(iter)*V0;
-      //****** do V2=H|V1> below
-      apply(V2,SparseH,V1);
 
-      alpha(iter) = 0;
-      for (ii=0; ii<Dim; ii++) alpha(iter) += V1(ii)*V2(ii);
-      
-      V2 = V2- alpha(iter)*V1 -  beta(iter)*V0;
-      Norm = 0;
-      for (ii=0; ii<Dim; ii++) Norm += V2(ii)*V2(ii);
-      beta(iter+1) = sqrt(Norm);
-      
-      V2 = V2/beta(iter+1);
+        iter++;
 
-      if (EViter == 1) {Psi += V2*(Hmatrix(iter+1,min));
-	//cout<<Psi<<" S \n";
-      }
-      
-      V0 = V1;
-      V1 = V2;
-      
-      if (iter > STARTIT && EViter == 0){
-	
-	//diagonalize tri-di matrix
-	d(0) = alpha(0);
-	for (ii=1;ii<=iter;ii++){
-	  d(ii) = alpha(ii);
-	  e(ii-1) = beta(ii);
-	}
-	e(iter) = 0;
-	
-	nn = iter+1;
-	rtn = tqli2(d,e,nn,Hmatrix,0);
-	
-    //---determin vector (value) of minimal eigenvectors
-    Ord.assign(Neigen,999.0); //initialize
-    min = 0;
-    for (int oo=0; oo<Ord.size(); oo++) 
-      if (d(0) < Ord.at(oo)) {
-        Ord.insert(Ord.begin()+oo,d(0));
-        Ord.pop_back();
-        break;
-      }//if
-	for (ii=1;ii<=iter;ii++){
-	  if (d(ii) < d(min))  min = ii;
-      for (int o=0; o<Ord.size(); o++) {
-        if (d(ii) < Ord.at(o)) {
-         Ord.insert(Ord.begin()+o,d(ii));
-         Ord.pop_back();
-         break;
-       }//if
-     }//o
-    }//ii
-	
-    //cout<<setprecision(12)<<d(min)<<"\n";     
-    for (int o=0; o<Ord.size(); o++)  cout<<setprecision(12)<<Ord.at(o)<<"  ";     
-    cout<<endl;
+        //V2 = sum(Ham(i,j)*V1(j),j); // V2 = H |V1>    ?? //V2 -= beta(iter)*V0;
+        //****** do V2=H|V1> below
+        apply(V2,SparseH,V1);
 
-	if ( (E0 - Ord.back() ) < CONV_PREC  && iter > 12) {
-	  Lexit = 1;
-	  //cout<<"Lanc :"<<iter<<" ";
-	  //cout<<setprecision(12)<<d(min)<<"\n";     
-          //for (int o=0; o<Ord.size(); o++)  cout<<setprecision(12)<<Ord.at(o)<<"  ";     
-          //cout<<endl;
-	}
-	else {
-	  E0 = Ord.back(); //E0 = d(min);
-	}
+        alpha(iter) = 0;
+        for (ii=0; ii<Dim; ii++) alpha(iter) += V1(ii)*V2(ii);
 
-        if (iter == LIT-2) {
-          LIT += 100;
-          //cout<<LIT<<" Resize Lan. it \n";
-          d.resize(LIT);
-          e.resize(LIT);
-          Hmatrix.resize(LIT,LIT);
-          alpha.resizeAndPreserve(LIT);
-          beta.resizeAndPreserve(LIT);
-        }//end resize
-	
-      }//end STARTIT
+        V2 = V2- alpha(iter)*V1 -  beta(iter)*V0;
+        Norm = 0;
+        for (ii=0; ii<Dim; ii++) Norm += V2(ii)*V2(ii);
+        beta(iter+1) = sqrt(Norm);
 
-      if (EViter == 1 && iter == MAXiter) Lexit = 1;
-      
+        V2 = V2/beta(iter+1);
+
+        if (EViter == 1) {Psi += V2*(Hmatrix(iter+1,min));
+            //cout<<Psi<<" S \n";
+        }
+
+        V0 = V1;
+        V1 = V2;
+
+        if (iter > STARTIT && EViter == 0){
+
+            //diagonalize tri-di matrix
+            d(0) = alpha(0);
+            for (ii=1;ii<=iter;ii++){
+                d(ii) = alpha(ii);
+                e(ii-1) = beta(ii);
+            }
+            e(iter) = 0;
+
+            nn = iter+1;
+            rtn = tqli2(d,e,nn,Hmatrix,0);
+
+            //---determin vector (value) of minimal eigenvectors
+            Ord.assign(Neigen,999.0); //initialize
+            min = 0;
+            for (int oo=0; oo<Ord.size(); oo++) 
+                if (d(0) < Ord.at(oo)) {
+                    Ord.insert(Ord.begin()+oo,d(0));
+                    Ord.pop_back();
+                    break;
+                }//if
+            for (ii=1;ii<=iter;ii++){
+                if (d(ii) < d(min))  min = ii;
+                for (int o=0; o<Ord.size(); o++) {
+                    if (d(ii) < Ord.at(o)) {
+                        Ord.insert(Ord.begin()+o,d(ii));
+                        Ord.pop_back();
+                        break;
+                    }//if
+                }//o
+            }//ii
+
+            //********************* UNCOMMENT THIS TO PRINT YOUR ENERGIES
+            //for (int o=0; o<Ord.size(); o++)  cout<<setprecision(12)<<Ord.at(o)<<"  ";     
+            //cout<<endl;
+
+            if ( (E0 - Ord.back() ) < CONV_PREC  && iter > 12) {
+                Lexit = 1;
+                //cout<<"Lanc :"<<iter<<" ";
+                //cout<<setprecision(12)<<d(min)<<"\n";     
+                //for (int o=0; o<Ord.size(); o++)  cout<<setprecision(12)<<Ord.at(o)<<"  ";     
+                //cout<<endl;
+            }
+            else {
+                E0 = Ord.back(); //E0 = d(min);
+            }
+
+            if (iter == LIT-2) {
+                LIT += 100;
+                //cout<<LIT<<" Resize Lan. it \n";
+                d.resize(LIT);
+                e.resize(LIT);
+                Hmatrix.resize(LIT,LIT);
+                alpha.resizeAndPreserve(LIT);
+                beta.resizeAndPreserve(LIT);
+            }//end resize
+
+
+        }//end STARTIT
+
+        if (EViter == 1 && iter == MAXiter) Lexit = 1;
+
     }//while
    
     if (EViter == 0){
@@ -204,6 +205,8 @@ void LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
 //  V2 = sum(Ham(i,j)*Psi(j),j);
 //  for (ii=0;ii<Dim;ii++)
 //    cout<<ii<<" "<<V2(ii)/Psi(ii)<<" EVdiv \n";
+
+  return E0;
 
 }//end Diag
 
@@ -261,49 +264,49 @@ int LANCZOS::tqli2(Array<l_double,1>& d, Array<l_double,1>& e, int n, Array<l_do
     iter=0;
     do { 
       for (m=l;m<n-1;m++) { 
-	dd=fabs(d(m))+fabs(d(m+1));
-	if (fabs(e(m))+dd == dd) break;
+    dd=fabs(d(m))+fabs(d(m+1));
+    if (fabs(e(m))+dd == dd) break;
       }
       if (m!=l) { 
-	if (iter++ == 30) { 
-	  cout <<"Too many iterations in tqli() \n";
-	  return 0;
-	}
-	g=(d(l+1)-d(l))/(2.0*e(l));
-	r=sqrt((g*g)+1.0);
-	g=d(m)-d(l)+e(l)/(g+SIGN(r,g));
-	s=c=1.0;
-	p=0.0;
-	for (i=m-1;i>=l;i--) { 
-	  f=s*e(i);
-	  b=c*e(i);
-	  if (fabs(f) >= fabs(g)) { 
-	    c=g/f;r=sqrt((c*c)+1.0);
-	    e(i+1)=f*r;
-	    c *= (s=1.0/r);
-	  }
-	  else { 
-	    s=f/g;r=sqrt((s*s)+1.0);
-	    e(i+1)=g*r;
-	    s *= (c=1.0/r);
-	  }
-	  g=d(i+1)-p;
-	  r=(d(i)-g)*s+2.0*c*b;
-	  p=s*r;
-	  d(i+1)=g+p;
-	  g=c*r-b;
-	  /*EVECTS*/
-	  if (Evects == 1) {
-	    for (k=0;k<n;k++) { 
-	      f=z(k,i+1);
-	      z(k,i+1)=s*z(k,i)+c*f;
-	      z(k,i)=c*z(k,i)-s*f;
-	    }
-	  }//Evects
-	}
-	d(l)=d(l)-p;
-	e(l)=g;
-	e(m)=0.0;
+    if (iter++ == 30) { 
+      cout <<"Too many iterations in tqli() \n";
+      return 0;
+    }
+    g=(d(l+1)-d(l))/(2.0*e(l));
+    r=sqrt((g*g)+1.0);
+    g=d(m)-d(l)+e(l)/(g+SIGN(r,g));
+    s=c=1.0;
+    p=0.0;
+    for (i=m-1;i>=l;i--) { 
+      f=s*e(i);
+      b=c*e(i);
+      if (fabs(f) >= fabs(g)) { 
+        c=g/f;r=sqrt((c*c)+1.0);
+        e(i+1)=f*r;
+        c *= (s=1.0/r);
+      }
+      else { 
+        s=f/g;r=sqrt((s*s)+1.0);
+        e(i+1)=g*r;
+        s *= (c=1.0/r);
+      }
+      g=d(i+1)-p;
+      r=(d(i)-g)*s+2.0*c*b;
+      p=s*r;
+      d(i+1)=g+p;
+      g=c*r-b;
+      /*EVECTS*/
+      if (Evects == 1) {
+        for (k=0;k<n;k++) { 
+          f=z(k,i+1);
+          z(k,i+1)=s*z(k,i)+c*f;
+          z(k,i)=c*z(k,i)-s*f;
+        }
+      }//Evects
+    }
+    d(l)=d(l)-p;
+    e(l)=g;
+    e(m)=0.0;
       }
     } while (m!=l);
   }

@@ -12,7 +12,6 @@ class PARAMS
     double JJ_; //the heisenberg exchange
     double hh_; //the next-nearest neighbor heisenberg exchange
 
-    int Neigen_;    //: # of eigenvalues to converge
     int valvec_; //  1 for -values only, 2 for vals AND vectors
     // FULL_DIAG?
 
@@ -24,7 +23,6 @@ class PARAMS
       pfin >> NN_;
       pfin >> JJ_;
       pfin >> hh_;
-      pfin >> Neigen_;
       pfin >> valvec_;
     
       pfin.close();
