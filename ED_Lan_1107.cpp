@@ -36,10 +36,12 @@ int main(){
   J=prm.JJ_;
   h=prm.hh_;
 
+    J=1;
+    h=1;
 
   // ------------------------
   vector < pair < int,int > > Bond;
-  Bond.resize(16);
+  Bond.resize(15);
   Bond[0]  = make_pair( 0, 1);
   Bond[1]  = make_pair( 1, 2);
   Bond[2]  = make_pair( 2, 3);
@@ -55,7 +57,7 @@ int main(){
   Bond[12] = make_pair(12,13);
   Bond[13] = make_pair(13,14);
   Bond[14] = make_pair(14,15);
-  Bond[15] = make_pair(15, 0);
+//  Bond[15] = make_pair(15, 0);
   // ------------------------
 
   GENHAM HV(16,J,h,Bond); 
