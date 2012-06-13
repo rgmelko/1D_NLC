@@ -1,27 +1,27 @@
 #include "GenHam.h"
 
-// Square (4x4) conventional 16 site lattice
+// 1D 16 site chain (PBC)
 //----------------------------------------------------------
 void GENHAM::Bonds_16B(){
 
-  Bond.resize(Nsite,3);
-  //horizontal    vertical
-  Bond = 0, 1, 4,   //   This is all you need for the Heisenberg model
-         1, 2, 5,   //   Each row indexes two sites associated with ll
-         2, 3, 6,   //   
-         3, 4, 7,   //     4
-         4, 5, 8,   //     |           e.g. site 0 related to site 1 and 4
-         5, 6, 9,   //   ( 0 ) - 1
-         6, 7, 10,
-         7, 8, 11,
-         8, 9, 12,
-         9, 10, 13,
-         10, 11, 14,
-         11, 12, 15,
-         12, 13, 0,
-         13, 14, 1,
-         14, 15, 2,
-         15, 0, 3;
+  Bond.resize(16);
+
+  Bond[0]  = make_pair( 0, 1);
+  Bond[1]  = make_pair( 1, 2);
+  Bond[2]  = make_pair( 2, 3);
+  Bond[3]  = make_pair( 3, 4);
+  Bond[4]  = make_pair( 4, 5);
+  Bond[5]  = make_pair( 5, 6);
+  Bond[6]  = make_pair( 6, 7);
+  Bond[7]  = make_pair( 7, 8);
+  Bond[8]  = make_pair( 8, 9);
+  Bond[9]  = make_pair( 9,10);
+  Bond[10] = make_pair(10,11);
+  Bond[11] = make_pair(11,12);
+  Bond[12] = make_pair(12,13);
+  Bond[13] = make_pair(13,14);
+  Bond[14] = make_pair(14,15);
+  Bond[15] = make_pair(15, 0);
 
 
 }//MakeBonds

@@ -76,7 +76,7 @@ void GENHAM::SparseHamJQ()
 
     for (int T0=0; T0<Nsite; T0++){ //T0 is your square index
 
-      si = Bond(T0,0); //si = Bond(T0,0); //the lower left bond spin is not always T0
+      si = T0; //si = Bond(T0,0); //the lower left bond spin is not always T0
       //if (si != T0) cout<<"Square error 2\n";
       //-----2:   first bond (Horizontal)
       tempod = tempi;
@@ -130,10 +130,10 @@ double GENHAM::HdiagPart(const long bra){
   for (int Ti=0; Ti<Nsite; Ti++){
     //***HEISENBERG PART
 
-    T0 = Bond(Ti,0); //T0 = Bond(Ti,0); //lower left spin
+    T0 = Bond[Ti].first; //T0 = Bond(Ti,0); //lower left spin
     S0b = (bra>>T0)&1;  
     //if (T0 != Ti) cout<<"Square error 3\n";
-    T1 = Bond(Ti,1); //T1 = Bond(Ti,1); //first bond
+    T1 = Bond[Ti].second; //T1 = Bond(Ti,1); //first bond
     S1b = (bra>>T1)&1;  //unpack bra
 
     valH += -JJ*2*(S0b-0.5)*2*(S1b-0.5);
