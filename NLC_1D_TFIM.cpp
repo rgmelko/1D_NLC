@@ -45,7 +45,7 @@ int main(){
 
     cout<<"A"<<endl;
 
-    //  fileGraphs.at(0).print();
+    fileGraphs.at(2).print();
 
     //for( unsigned int currentGraph = 0; currentGraph < fileGraphs.size(); currentGraph++)
     //{
