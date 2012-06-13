@@ -13,7 +13,7 @@ graph::graph()
 }
 
 graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, 
-         int LattConst, vector< int > & subgraphs )
+	     int LattConst, vector< pair<int, int> > & subgraphs )
 {
     AdjacencyList = AdjList;
     Identifier = IdentNumber;
@@ -25,7 +25,7 @@ graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int
 }
 
 graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, 
-         int LattConst, vector< int > & subgraphs, vector< vector< pair<int,int> > > embeddings )
+	     int LattConst, vector< pair<int, int> > & subgraphs, vector< vector< pair<int,int> > > embeddings )
 {
     AdjacencyList = AdjList;
     Identifier = IdentNumber;
@@ -46,6 +46,11 @@ void graph::print()
         cout<<AdjacencyList[i].first<<" ";
         cout<<AdjacencyList[i].second<<"\n";
     }
+    for (int i=0; i< SubgraphList.size(); i++){
+      cout << SubgraphList[i].first<<" ";
+      cout << SubgraphList[i].second<<"\n";
+    }
+      
 };
 
 
@@ -87,7 +92,7 @@ void WriteGraphsToFile( vector< graph > & graphList, std::string file)
 
         for (unsigned int currentSubgraph = 0; currentSubgraph < graphList[currentGraph].SubgraphList.size(); currentSubgraph++)
         {
-            output<<graphList[currentGraph].SubgraphList[currentSubgraph]<<" ";
+	  //    output<<graphList[currentGraph].SubgraphList[currentSubgraph]<<" ";
         }
         output<<endl;
     }
@@ -155,6 +160,19 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 
         //read in subclusters
         ss << rawLines.at(currentLine+2);   
+	int subSize(0);
+	while(!ss.eof()){
+	  ss >> teststring;
+	  subSize++;
+	}
+
+	ss << rawLines.at(currentLine+2);
+        tempGraph.SubgraphList.resize(5);
+        for(int b=0; b<5;b++){
+          ss >> tempGraph.SubgraphList[b].first;
+          ss >> tempGraph.SubgraphList[b].second;
+          //cout << tempGraph.AdjacencyList[b].first << "," <<tempGraph.AdjacencyList[b].second << endl;
+        }
 
         ss.str("");
         ss.clear();
