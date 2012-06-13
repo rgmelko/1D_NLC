@@ -5,6 +5,7 @@ Roger Melko, Ann Kallin, June 2012
 baesd on a code from November 2007
 ********************************************************************/
 
+#include <utility>
 #include <fstream> 
 #include <vector> 
 #include <math.h>
