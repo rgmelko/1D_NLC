@@ -29,16 +29,16 @@ int main(){
 
   PARAMS prm;
   double J;
-  double J2;
+  double h;
   double Q;
   int Sz;
   
   J=prm.JJ_;
-  J2=prm.J2_;
+  h=prm.hh_;
   Q=-prm.QQ_;// SIGN HAS TO BE FLIPPED: NOW SIGN AT INPUT IS SAME AS PAPER 
   Sz=prm.Sz_;
 
-  GENHAM HV(16,J,J2,Q,Sz); 
+  GENHAM HV(16,J,h,Q,Sz); 
   HV.Bonds_16B(); 
 
   //-------------------------EVERYTHING IN THIS BLOCK OF CODE FOR LANCZOS

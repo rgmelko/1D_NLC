@@ -9,7 +9,7 @@ class PARAMS
 {
   public:
     double JJ_; //the heisenberg exchange
-    double J2_; //the next-nearest neighbor heisenberg exchange
+    double hh_; //the next-nearest neighbor heisenberg exchange
     double QQ_; //the 4-particle SU(2) exchange
     int Sz_; // z-component of total spin
     // FOR LANCZOS
@@ -23,7 +23,7 @@ class PARAMS
       pfin.open("param.dat");
     
       pfin >> JJ_;
-      pfin >> J2_;
+      pfin >> hh_;
       pfin >> QQ_;
       pfin >> Sz_;
       pfin >> Neigen_;
