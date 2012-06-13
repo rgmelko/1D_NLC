@@ -38,8 +38,9 @@ int main(){
     //const string filename ("lineargraphs.dat");
  
     graph graph1;
-
+    
     vector< graph > fileGraphs;
+
     ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
 
     cout<<"A"<<endl;

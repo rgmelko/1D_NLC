@@ -1,17 +1,19 @@
 #include "graphs.h"
+#include <sstream>
 
 graph::graph()
 {
-	NumberSites = 0;
-	NumberBonds = 0;
-	LatticeConstant = 1;
-	Identifier = 0;
+	NumberSites = -99;
+	NumberBonds = -99;
+	LatticeConstant = -99;
+	Identifier = -99;
 	RealSpaceCoordinates.clear();
 	SubgraphList.clear();
 	AdjacencyList.clear();
 }
 
-graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, int LattConst, vector< int > & subgraphs )
+graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, 
+	     int LattConst, vector< int > & subgraphs )
 {
 	AdjacencyList = AdjList;
 	Identifier = IdentNumber;
@@ -22,7 +24,8 @@ graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int
 	RealSpaceCoordinates.clear();
 }
 
-graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, int LattConst, vector< int > & subgraphs, vector< vector< pair<int,int> > > embeddings )
+graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, 
+	     int LattConst, vector< int > & subgraphs, vector< vector< pair<int,int> > > embeddings )
 {
 	AdjacencyList = AdjList;
 	Identifier = IdentNumber;
@@ -73,13 +76,14 @@ void WriteGraphsToFile( vector< graph > & graphList, std::string file)
 
 		for (unsigned int currentBond = 0; currentBond < graphList[currentGraph].AdjacencyList.size(); currentBond++)
 		{
-			output<<"("<<graphList[currentGraph].AdjacencyList[currentBond].first<<","<<graphList[currentGraph].AdjacencyList[currentBond].second<<")";
+			output<<"("<<graphList[currentGraph].AdjacencyList[currentBond].first<<","
+			      <<graphList[currentGraph].AdjacencyList[currentBond].second<<")";
 		}
 		output<<endl;
 
 		for (unsigned int currentSubgraph = 0; currentSubgraph < graphList[currentGraph].SubgraphList.size(); currentSubgraph++)
 		{
-			output<<"("<<graphList[currentGraph].SubgraphList[currentSubgraph]<<")";
+			output<<graphList[currentGraph].SubgraphList[currentSubgraph]<<" ";
 		}
 		output<<endl;
 	}
@@ -91,6 +95,7 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 	vector< string > rawLines;
 	int currentGraph;
 	const int memberCount = 6;
+	graph tempGraph;
 
 	while ( !input.eof() )
 	{
@@ -102,82 +107,132 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 
 	//cout<<rawLines.size()<<endl;
 
-	for (unsigned int currentLine = 0; currentLine < rawLines.size(); currentLine++)
+	stringstream ss (stringstream::in | stringstream::out);
+
+	//	for  (unsigned int currentLine = 0; currentLine < rawLines.size(); currentLine+=3)
+	for  (unsigned int currentLine = 0; currentLine < 9; currentLine+=3)
 	{
 		cout<<currentLine<<" ";
 		currentGraph = currentLine/memberCount;
 		cout<<currentGraph<<" ";
-		graph tempGraph;
 		unsigned int currentChar = 0;
 		string currentNumber;
-	    cout<<currentLine % memberCount<<endl;	
-		switch ( currentLine % memberCount )
-		{
-			case 0 :
-				tempGraph.Identifier = atoi(rawLines.at(currentLine).c_str());
-			case 1 :
-				tempGraph.NumberSites = atoi(rawLines.at(currentLine).c_str());
-				break;
-			case 2 :
-				tempGraph.NumberBonds = atoi(rawLines.at(currentLine).c_str());
-				break;
-			case 3 : 
-				tempGraph.LatticeConstant = atoi(rawLines.at(currentLine).c_str());
-				break;
-			case 4 : 
+		cout<<currentLine % memberCount<<endl;
+	
+		ss << rawLines.at(currentLine);
+	      
+		ss >> tempGraph.Identifier;
+		ss >> tempGraph.NumberSites;
+		ss >> tempGraph.NumberBonds;
+		ss >> tempGraph.LatticeConstant;
+	       
+		cout << "Identifier = " <<tempGraph.Identifier << endl;
+		cout << "NumberSites = " << tempGraph.NumberSites << endl;
+		cout << "Identifier = " <<tempGraph.NumberBonds << endl;
+		cout << "NumberSites = " << tempGraph.LatticeConstant << endl;
 
-				while ( currentChar < rawLines.at(currentLine).length() )
-				{
-					if ( rawLines.at(currentLine)[currentChar] == '(' )
-					{
-						tempGraph.AdjacencyList.resize( tempGraph.AdjacencyList.size() + 1);
-					}
-					if ( rawLines.at(currentLine)[currentChar] != '(' &&
-							rawLines.at(currentLine)[currentChar] != ')' &&
-							rawLines.at(currentLine)[currentChar] != ',' && 
-							rawLines.at(currentLine)[currentChar] != '\n' )
-					{
-						currentNumber.push_back(rawLines.at(currentLine)[currentChar]);
-					}
-					if ( rawLines.at(currentLine)[currentChar] == ',' )
-					{
-						tempGraph.AdjacencyList.back().first = atoi(currentNumber.c_str());
-						currentNumber.clear();
-					}
-					if ( rawLines.at(currentLine)[currentChar] == ')' )
-					{
-						tempGraph.AdjacencyList.back().second = atoi(currentNumber.c_str());
-						currentNumber.clear();
-					}
-				}
-				break;
-			case 5 :
+		ss.str("");
+		ss.clear();
 
-				while ( currentChar < rawLines.at(currentLine).length() )
-				{
-					if ( rawLines.at(currentLine)[currentChar] == '(' )
-					{
-						tempGraph.SubgraphList.resize( tempGraph.SubgraphList.size() + 1);
-					}
+		//read in bonds
 
-					if ( rawLines.at(currentLine)[currentChar] != '(' &&
-							rawLines.at(currentLine)[currentChar] != ')' &&
-							rawLines.at(currentLine)[currentChar] != '\n' )
-					{
-						currentNumber.push_back(rawLines.at(currentLine)[currentChar]);
-					}
-					if ( rawLines.at(currentLine)[currentChar] == ')' )
-					{
-						tempGraph.SubgraphList.back() = atoi(currentNumber.c_str());
-						currentNumber.clear();
-					}
-				}
-				break;
+		
+		ss << rawLines.at(currentLine+1);
+		string teststring;
+		tempGraph.AdjacencyList.resize(tempGraph.NumberBonds);
+		for(int b=0; b<tempGraph.NumberBonds;b++){
+		  getline(ss,teststring,'('); 
+		  getline(ss,teststring,',');
+		  tempGraph.AdjacencyList.back().first = atoi(teststring.c_str());
+		  getline(ss,teststring,')'); 
+		  tempGraph.AdjacencyList[b].second = atoi(teststring.c_str());
+		  cout << tempGraph.AdjacencyList[b].first << "," <<tempGraph.AdjacencyList[b].second << endl;
 		}
 
-		graphList.push_back(tempGraph);
+		ss.str("");
+		ss.clear();
 
+		//read in subclusters
+		ss << rawLines.at(currentLine+2);
+
+
+		ss.str("");
+		ss.clear();
+
+		/*
+		switch ( currentLine % memberCount )
+		  {
+		  case 0 :
+		    //    tempGraph.Identifier = atoi(rawLines.at(currentLine).c_str());
+		    cout << "Identifier = " <<  tempGraph.Identifier << endl;
+		    break;
+		  case 1 :
+		    // tempGraph.NumberSites = atoi(rawLines.at(currentLine).c_str());
+		    cout << "NumberSites = " << tempGraph.NumberSites << endl;
+		    break;
+		  case 2 :
+		    // tempGraph.NumberBonds = atoi(rawLines.at(currentLine).c_str());
+		    cout << "NumberBonds = " << tempGraph.NumberBonds << endl;
+		    break;
+		  case 3 : 
+		    // tempGraph.LatticeConstant = atoi(rawLines.at(currentLine).c_str());
+		    cout << "LatticeConstant = " << tempGraph.LatticeConstant << endl;
+		    break;
+		  case 4 : 
+		    
+		    while ( currentChar < rawLines.at(currentLine).length() )
+		      {
+			if ( rawLines.at(currentLine)[currentChar] == '(' )
+			  {
+			    tempGraph.AdjacencyList.resize( tempGraph.AdjacencyList.size() + 1);
+			  }
+			if ( rawLines.at(currentLine)[currentChar] != '(' &&
+			     rawLines.at(currentLine)[currentChar] != ')' &&
+			     rawLines.at(currentLine)[currentChar] != ',' && 
+			     rawLines.at(currentLine)[currentChar] != '\n' )
+			  {
+			    currentNumber.push_back(rawLines.at(currentLine)[currentChar]);
+			  }
+			if ( rawLines.at(currentLine)[currentChar] == ',' )
+			  {
+			    tempGraph.AdjacencyList.back().first = atoi(currentNumber.c_str());
+			    currentNumber.clear();
+			  }
+			if ( rawLines.at(currentLine)[currentChar] == ')' )
+			  {
+			    tempGraph.AdjacencyList.back().second = atoi(currentNumber.c_str());
+			    currentNumber.clear();
+			  }
+		      }
+		    break;
+		  case 5 :
+
+		    while ( currentChar < rawLines.at(currentLine).length() )
+		      {
+			if ( rawLines.at(currentLine)[currentChar] == '(' )
+			  {
+			    tempGraph.SubgraphList.resize( tempGraph.SubgraphList.size() + 1);
+			  }
+			
+			if ( rawLines.at(currentLine)[currentChar] != '(' &&
+			     rawLines.at(currentLine)[currentChar] != ')' &&
+			     rawLines.at(currentLine)[currentChar] != '\n' )
+			  {
+			    currentNumber.push_back(rawLines.at(currentLine)[currentChar]);
+			  }
+			if ( rawLines.at(currentLine)[currentChar] == ')' )
+			  {
+			    tempGraph.SubgraphList.back() = atoi(currentNumber.c_str());
+			    currentNumber.clear();
+			  }
+		      }
+		    break;
+		  }
+		*/
+		graphList.push_back(tempGraph);
+		
 	}
+
 }
 
 
