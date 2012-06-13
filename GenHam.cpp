@@ -128,7 +128,7 @@ double GENHAM::HdiagPart(const long bra){
   int T0,T1;  //site
   double valH = 0;
 
-  for (int Ti=0; Ti<Nsite; Ti++){
+  for (int Ti=0; Ti<Bond.size(); Ti++){
     //***HEISENBERG PART
 
     T0 = Bond[Ti].first; //T0 = Bond(Ti,0); //lower left spin
