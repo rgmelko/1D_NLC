@@ -109,8 +109,8 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 
 	stringstream ss (stringstream::in | stringstream::out);
 
-	//	for  (unsigned int currentLine = 0; currentLine < rawLines.size(); currentLine+=3)
-	for  (unsigned int currentLine = 0; currentLine < 9; currentLine+=3)
+	for  (unsigned int currentLine = 0; currentLine < rawLines.size()-1; currentLine+=3)
+	  //for  (unsigned int currentLine = 0; currentLine < 9; currentLine+=3)
 	{
 		cout<<currentLine<<" ";
 		currentGraph = currentLine/memberCount;
@@ -141,11 +141,8 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 		string teststring;
 		tempGraph.AdjacencyList.resize(tempGraph.NumberBonds);
 		for(int b=0; b<tempGraph.NumberBonds;b++){
-		  getline(ss,teststring,'('); 
-		  getline(ss,teststring,',');
-		  tempGraph.AdjacencyList.back().first = atoi(teststring.c_str());
-		  getline(ss,teststring,')'); 
-		  tempGraph.AdjacencyList[b].second = atoi(teststring.c_str());
+		  ss >> tempGraph.AdjacencyList[b].first;
+		  ss >> tempGraph.AdjacencyList[b].second;
 		  cout << tempGraph.AdjacencyList[b].first << "," <<tempGraph.AdjacencyList[b].second << endl;
 		}
 
@@ -153,11 +150,13 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 		ss.clear();
 
 		//read in subclusters
-		ss << rawLines.at(currentLine+2);
-
+		ss << rawLines.at(currentLine+2);	
 
 		ss.str("");
 		ss.clear();
+
+		graphList.push_back(tempGraph);
+
 
 		/*
 		switch ( currentLine % memberCount )
@@ -229,9 +228,10 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 		    break;
 		  }
 		*/
-		graphList.push_back(tempGraph);
-		
-	}
+		cout << "B" << endl;
+		cout <<"C" << endl;
+	}	
+		cout <<"D" << endl;
 
 }
 
