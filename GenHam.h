@@ -26,7 +26,7 @@ public:
   
   Array<double,2> Ham;  //full hamiltonian
   
-  GENHAM(const int N_ ,const h_float J_, const h_float h_, vector < pair<int,int> > BBond_); 
+  GENHAM(const int N_ ,const h_float J_, const h_float h_, vector < pair<int,int> > BBond_, bool Low_); 
   void printg();
   //double at(const int , const int );
   Array<double,1> apply(const Array<double,1>&);
@@ -36,6 +36,7 @@ public:
   
 private:
   int Nsite; //number sites
+  bool LowField; //High or Low Field expansion
   
   vector< pair < int,int> > Bond;
 

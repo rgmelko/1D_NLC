@@ -54,7 +54,7 @@ int main(){
 
 
       //---High-Field---
-        GENHAM HV(fileGraphs.at(i).NumberSites,J,h,fileGraphs.at(i).AdjacencyList); 
+      GENHAM HV(fileGraphs.at(i).NumberSites,J,h,fileGraphs.at(i).AdjacencyList,fileGraphs.at(i).LowField); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
@@ -73,7 +73,7 @@ int main(){
         cout<<endl<<endl;
 
 	//---Low-Field---
-	GENHAM HV2(fileGraphs.at(i+1).NumberSites,J,h,fileGraphs.at(i+1).AdjacencyList); 
+	GENHAM HV2(fileGraphs.at(i+1).NumberSites,J,h,fileGraphs.at(i+1).AdjacencyList,fileGraphs.at(i+1).LowField); 
 
         LANCZOS lancz2(HV2.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV2.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
