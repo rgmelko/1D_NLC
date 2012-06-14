@@ -33,7 +33,6 @@ public:
 
   
   void SparseHamJQ();
-  
 private:
   int Nsite; //number sites
   bool LowField; //High or Low Field expansion
@@ -43,7 +42,7 @@ private:
     h_float JJ; //heisenberg exchange value
     h_float hh; //next-nearest neighbor exchange value
   
-    double HdiagPart(const long);
+  double HdiagPart(const long, int);
     double HOFFdBondX(const int, const long);
     double HOFFdBondY(const int, const long);
 

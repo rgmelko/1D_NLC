@@ -73,7 +73,7 @@ void GENHAM::SparseHamJQ()
 
     //-----1:   diagonal 
     tempBas.push_back(BasPos.at(tempi));  
-    tempD = (*this).HdiagPart(tempi);
+    tempD = (*this).HdiagPart(tempi,Nsite);
     tempH.push_back(tempD); 
 
     for (int T0=0; T0<Nsite; T0++){ //T0 is your square index
@@ -123,7 +123,7 @@ void GENHAM::SparseHamJQ()
 }//Heisenberg
 
 //----------------------------------------------------------
-double GENHAM::HdiagPart(const long bra){
+double GENHAM::HdiagPart(const long bra, int Sites){
 
   int S0b,S1b ;  //spins (bra 
   int T0,T1;  //site
@@ -141,6 +141,12 @@ double GENHAM::HdiagPart(const long bra){
     valH += -JJ*2*(S0b-0.5)*2*(S1b-0.5);
 
   }//T0
+
+  T0=0;
+  T1=Sites-1;
+  S0b = (bra>>T0)&1;
+  S1b = (bra>>T1)&1;
+  if(LowField){ valH += -JJ*2*((S0b-0.5) + (S1b-0.5)); }
 
   //cout<<bra<<" "<<valH<<endl;
 

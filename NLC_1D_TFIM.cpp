@@ -43,6 +43,18 @@ int main(){
 
     ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
 
+    double hpow=1;
+
+    ofstream fout("output.dat");
+    fout.precision(10);
+    cout.precision(10);
+
+    for(int hh=0; hh<20; hh++){
+      hpow*=0.5;
+      h = 1-hpow;
+      cout << h << endl;
+
+
     WeightHigh.push_back(-h); //Weight for site zero
     double RunningSumHigh = WeightHigh[0];
     cout<<RunningSumHigh<<endl<<endl;
@@ -64,13 +76,13 @@ int main(){
         for (int j = 1; j<fileGraphs.at(i).SubgraphList.size(); j++)
 	  WeightHigh.back() -= fileGraphs.at(i).SubgraphList[j].second * WeightHigh[fileGraphs.at(i).SubgraphList[j].first];
 
-        cout<<"graph #"<<i/2;
-        cout<<" energy "<<setprecision(12)<<energy<<endl;
+        cout<<"h="<<h<<" J="<<J<<" graph #"<<i/2<<"  ";
+	//        cout<<" energy "<<setprecision(12)<<energy<<endl;
 
-        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
+	//        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
 	RunningSumHigh += WeightHigh.back();
         cout <<"RunningSumHigh = "<< RunningSumHigh;
-        cout<<endl<<endl;
+        cout<<endl;
 
 	//---Low-Field---
 	GENHAM HV2(fileGraphs.at(i+1).NumberSites,J,h,fileGraphs.at(i+1).AdjacencyList,fileGraphs.at(i+1).LowField); 
@@ -83,16 +95,31 @@ int main(){
         for (int j = 1; j<fileGraphs.at(i+1).SubgraphList.size(); j++)
 	  WeightLow.back() -= fileGraphs.at(i+1).SubgraphList[j].second * WeightLow[fileGraphs.at(i+1).SubgraphList[j].first];
 
-        cout<<"graph #"<<i/2;
-        cout<<" energy "<<setprecision(12)<<energy<<endl;
+	cout<<"h="<<h<<" J="<<J<<" graph #"<<i/2<<"  ";	
+	//       cout<<" energy "<<setprecision(12)<<energy<<endl;
 
-        cout<<"WeightLow["<<i<<"] = "<<WeightLow.back()<<endl;
+	//        cout<<"WeightLow["<<i<<"] = "<<WeightLow.back()<<endl;
 	RunningSumLow += WeightLow.back();
         cout <<"RunningSumLow = "<< RunningSumLow;
         cout<<endl<<endl; 
 
     }
 
+    fout<<"h="<<h<<" J="<<J<<" graph # 20  ";	
+    fout <<"RunningSumLow = "<< RunningSumLow<< endl;
+    fout<<"h="<<h<<" J="<<J<<" graph # 20  ";	
+    fout <<"RunningSumHigh = "<< RunningSumHigh<< endl<<endl;
+
+    WeightHigh.clear();
+    WeightLow.clear();
+    RunningSumHigh=0;
+    RunningSumLow=0;
+
+    }
+
+
     return 0;
+
+    fout.close();
 
 }
