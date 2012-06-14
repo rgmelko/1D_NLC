@@ -51,16 +51,17 @@ int main(){
 
     for(int hh=0; hh<20; hh++){
       hpow*=0.5;
-      h = 1-hpow;
-      cout << h << endl;
-
-
+      //h = 1-hpow;
+      // cout << h << endl;
+      
+      J = 1-hpow; 
+    
     WeightHigh.push_back(-h); //Weight for site zero
     double RunningSumHigh = WeightHigh[0];
-    cout<<RunningSumHigh<<endl<<endl;
+    // cout<<RunningSumHigh<<endl<<endl;
     WeightLow.push_back(-h); //Weight for site zero
     double RunningSumLow = WeightLow[0];
-
+    
 
     for (int i=2; i<fileGraphs.size(); i+=2){ //skip the zeroth graph
 
@@ -73,7 +74,7 @@ int main(){
         energy = lancz.Diag(HV, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
         WeightHigh.push_back(energy);
-        for (int j = 1; j<fileGraphs.at(i).SubgraphList.size(); j++)
+        for (int j = 0; j<fileGraphs.at(i).SubgraphList.size(); j++)
 	  WeightHigh.back() -= fileGraphs.at(i).SubgraphList[j].second * WeightHigh[fileGraphs.at(i).SubgraphList[j].first];
 
         cout<<"h="<<h<<" J="<<J<<" graph #"<<i/2<<"  ";
@@ -92,7 +93,7 @@ int main(){
         energy = lancz2.Diag(HV2, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
         WeightLow.push_back(energy);
-        for (int j = 1; j<fileGraphs.at(i+1).SubgraphList.size(); j++)
+        for (int j = 0; j<fileGraphs.at(i+1).SubgraphList.size(); j++)
 	  WeightLow.back() -= fileGraphs.at(i+1).SubgraphList[j].second * WeightLow[fileGraphs.at(i+1).SubgraphList[j].first];
 
 	cout<<"h="<<h<<" J="<<J<<" graph #"<<i/2<<"  ";	
@@ -115,7 +116,7 @@ int main(){
     RunningSumHigh=0;
     RunningSumLow=0;
 
-    }
+        }
 
 
     return 0;
