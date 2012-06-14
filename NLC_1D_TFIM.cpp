@@ -39,34 +39,57 @@ int main(){
 
     vector< graph > fileGraphs; //graph objects
     
-    vector<double> Weight;
+    vector<double> WeightHigh, WeightLow;
 
     ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
 
-    Weight.push_back(-h); //Weight for site zero
-    double RunningSum = Weight[0];
-    cout<<RunningSum<<endl;
+    WeightHigh.push_back(-h); //Weight for site zero
+    double RunningSumHigh = WeightHigh[0];
+    cout<<RunningSumHigh<<endl<<endl;
+    WeightLow.push_back(-h); //Weight for site zero
+    double RunningSumLow = WeightLow[0];
 
 
-    for (int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
+    for (int i=2; i<fileGraphs.size(); i+=2){ //skip the zeroth graph
 
+
+      //---High-Field---
         GENHAM HV(fileGraphs.at(i).NumberSites,J,h,fileGraphs.at(i).AdjacencyList); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
         energy = lancz.Diag(HV, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
-        Weight.push_back(energy);
-        for (int j = 0; j<fileGraphs.at(i).SubgraphList.size(); j++)
-            Weight[i] -= fileGraphs.at(i).SubgraphList[j].second * Weight[fileGraphs.at(i).SubgraphList[j].first];
+        WeightHigh.push_back(energy);
+        for (int j = 1; j<fileGraphs.at(i).SubgraphList.size(); j++)
+	  WeightHigh.back() -= fileGraphs.at(i).SubgraphList[j].second * WeightHigh[fileGraphs.at(i).SubgraphList[j].first];
 
-        cout<<"graph #"<<i;
+        cout<<"graph #"<<i/2;
         cout<<" energy "<<setprecision(12)<<energy<<endl;
 
-        cout<<"Weight["<<i<<"] = "<<Weight[i]<<endl;
-        RunningSum += Weight[i];
-        cout <<"RunningSum = "<< RunningSum;
-        cout<<endl;
+        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
+	RunningSumHigh += WeightHigh.back();
+        cout <<"RunningSumHigh = "<< RunningSumHigh;
+        cout<<endl<<endl;
+
+	//---Low-Field---
+	GENHAM HV2(fileGraphs.at(i+1).NumberSites,J,h,fileGraphs.at(i+1).AdjacencyList); 
+
+        LANCZOS lancz2(HV2.Vdim);  //dimension of reduced Hilbert space (Sz sector)
+        HV2.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
+        energy = lancz2.Diag(HV2, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+
+        WeightLow.push_back(energy);
+        for (int j = 1; j<fileGraphs.at(i+1).SubgraphList.size(); j++)
+	  WeightLow.back() -= fileGraphs.at(i+1).SubgraphList[j].second * WeightLow[fileGraphs.at(i+1).SubgraphList[j].first];
+
+        cout<<"graph #"<<i/2;
+        cout<<" energy "<<setprecision(12)<<energy<<endl;
+
+        cout<<"WeightLow["<<i<<"] = "<<WeightLow.back()<<endl;
+	RunningSumLow += WeightLow.back();
+        cout <<"RunningSumLow = "<< RunningSumLow;
+        cout<<endl<<endl; 
 
     }
 

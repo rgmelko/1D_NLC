@@ -17,12 +17,13 @@ class graph
         int NumberSites;
         int NumberBonds;
         int Identifier;
+        bool LowField;
         vector< pair<int, int> > SubgraphList;
         vector< vector< pair<int, int> > > RealSpaceCoordinates;
 
         graph();
-  graph(vector< pair<int, int> > & , int, int, int, int, vector< pair<int, int> > & );
-  graph(vector< pair<int, int> > & , int, int, int, int, vector<pair< int, int> > &, vector< vector< pair<int, int> > > );
+  graph(vector< pair<int, int> > & , int, int, int, int, bool, vector< pair<int, int> > & );
+  graph(vector< pair<int, int> > & , int, int, int, int, bool, vector<pair< int, int> > &, vector< vector< pair<int, int> > > );
 
         graph& operator=(const graph & other);
         bool operator==(const graph & other);

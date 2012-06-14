@@ -7,31 +7,34 @@ graph::graph()
     NumberBonds = -99;
     LatticeConstant = -99;
     Identifier = -99;
+    LowField = false;
     RealSpaceCoordinates.clear();
     SubgraphList.clear();
     AdjacencyList.clear();
 }
 
 graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, 
-	     int LattConst, vector< pair<int, int> > & subgraphs )
+	     int LattConst, bool Field, vector< pair<int, int> > & subgraphs )
 {
     AdjacencyList = AdjList;
     Identifier = IdentNumber;
     NumberSites = order;
     NumberBonds = edgeCount;
     LatticeConstant = LattConst;
+    LowField = Field;
     SubgraphList = subgraphs;
     RealSpaceCoordinates.clear();
 }
 
 graph::graph(vector< pair<int, int> > & AdjList, int IdentNumber, int order, int edgeCount, 
-	     int LattConst, vector< pair<int, int> > & subgraphs, vector< vector< pair<int,int> > > embeddings )
+	     int LattConst, bool Field, vector< pair<int, int> > & subgraphs, vector< vector< pair<int,int> > > embeddings )
 {
     AdjacencyList = AdjList;
     Identifier = IdentNumber;
     NumberSites = order;
     NumberBonds = edgeCount;
     LatticeConstant = LattConst;
+    LowField = Field;
     SubgraphList = subgraphs;
     RealSpaceCoordinates = embeddings;
 }
@@ -41,7 +44,8 @@ void graph::print()
     cout<<Identifier<<" ";
     cout<<NumberSites<<" ";
     cout<<NumberBonds<<" ";
-    cout<<LatticeConstant<<"\n";
+    cout<<LatticeConstant<<"  ";
+    cout<<LowField<<"\n";
     for (int i = 0; i< AdjacencyList.size(); i++){
         cout<<AdjacencyList[i].first<<" ";
         cout<<AdjacencyList[i].second<<"\n";
@@ -59,6 +63,7 @@ graph& graph::operator=( const graph & other)
     this->NumberBonds = other.NumberBonds;
     this->NumberSites = other.NumberSites;
     this->LatticeConstant = other.LatticeConstant;
+    this->LowField = other.LowField;
     this->AdjacencyList = other.AdjacencyList;
     this->SubgraphList = other.SubgraphList;
     return *this;
@@ -69,6 +74,7 @@ bool graph::operator==( const graph & other)
     return (( this->NumberBonds == other.NumberBonds) &&
             ( this->NumberSites == other.NumberSites) &&
             ( this->LatticeConstant == other.LatticeConstant) &&
+	    ( this->LowField == other.LowField) &&
             ( this->AdjacencyList == other.AdjacencyList) );
 }
 
@@ -78,10 +84,11 @@ void WriteGraphsToFile( vector< graph > & graphList, std::string file)
     ofstream output(file.c_str());
     for( unsigned int currentGraph = 0; currentGraph < graphList.size(); currentGraph++)
     {
-        output<<graphList[currentGraph].Identifier<<endl;
-        output<<graphList[currentGraph].NumberSites<<endl;
-        output<<graphList[currentGraph].NumberBonds<<endl;
-        output<<graphList[currentGraph].LatticeConstant<<endl;
+        output<<graphList[currentGraph].Identifier<<" ";
+        output<<graphList[currentGraph].NumberSites<<" ";
+        output<<graphList[currentGraph].NumberBonds<<" ";
+        output<<graphList[currentGraph].LatticeConstant<<" ";
+	output<<graphList[currentGraph].LowField<<endl;
 
         for (unsigned int currentBond = 0; currentBond < graphList[currentGraph].AdjacencyList.size(); currentBond++)
         {
@@ -134,6 +141,7 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
         ss >> tempGraph.NumberSites;
         ss >> tempGraph.NumberBonds;
         ss >> tempGraph.LatticeConstant;
+	ss >> tempGraph.LowField;
            
         //cout << "Identifier = " <<tempGraph.Identifier << endl;
         //cout << "NumberSites = " << tempGraph.NumberSites << endl;
