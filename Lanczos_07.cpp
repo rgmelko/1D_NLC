@@ -29,6 +29,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
   int Lexit;
   l_double Norm;
   l_double E0;
+  l_double Energy;
   vector<l_double> Ord(Neigen); //a vector for the ordered eigenvalues
   
   int LIT;   //max number of Lanczos iterations
@@ -197,6 +198,9 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
         if (d(ii) < d(min))  min = ii;
     }
     
+    if (EViter == 0) Energy = E0;
+
+
   }//repeat (EViter) to transfrom eigenvalues H basis
   
   //Normalize(Psi,N);
@@ -208,7 +212,8 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
 //  for (ii=0;ii<Dim;ii++)
 //    cout<<ii<<" "<<V2(ii)/Psi(ii)<<" EVdiv \n";
 
-  return E0;
+//  return E0;
+  return Energy;
 
 }//end Diag
 
