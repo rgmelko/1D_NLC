@@ -202,7 +202,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
   //Normalize(Psi,N);
   Normalize(Psi);
 
-  cout<<Psi<<" Psi \n";
+  //  cout<<Psi<<" Psi \n";
 
 //  V2 = sum(Ham(i,j)*Psi(j),j);
 //  for (ii=0;ii<Dim;ii++)

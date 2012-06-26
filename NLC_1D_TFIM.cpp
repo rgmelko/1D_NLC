@@ -94,7 +94,7 @@ int main(){
         HV2.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
         energy = lancz2.Diag(HV2, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
-	//	for(int i=0;i<HV2.Vdim){ cout << HV2.
+	//cout << eVec << endl;
 
         WeightLow.push_back(energy);
         for (int j = 0; j<fileGraphs.at(i+1).SubgraphList.size(); j++)
