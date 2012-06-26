@@ -33,6 +33,8 @@ int main(){
     double J;
     double h;
 
+    Array<l_double,1> eVec;
+
     J=prm.JJ_;
     h=prm.hh_;
 
@@ -71,7 +73,7 @@ int main(){
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-        energy = lancz.Diag(HV, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+        energy = lancz.Diag(HV, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
         WeightHigh.push_back(energy);
         for (int j = 0; j<fileGraphs.at(i).SubgraphList.size(); j++)
@@ -90,7 +92,9 @@ int main(){
 
         LANCZOS lancz2(HV2.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV2.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-        energy = lancz2.Diag(HV2, 1, prm.valvec_); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+        energy = lancz2.Diag(HV2, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+
+	//	for(int i=0;i<HV2.Vdim){ cout << HV2.
 
         WeightLow.push_back(energy);
         for (int j = 0; j<fileGraphs.at(i+1).SubgraphList.size(); j++)

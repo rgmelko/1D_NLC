@@ -9,7 +9,7 @@ LANCZOS::LANCZOS(const int Dim_) : Dim (Dim_)
   STARTIT = 5;
   CONV_PREC = 1E-10;
 
-  Psi.resize(Dim_);
+  //  Psi.resize(Dim_);
   V0.resize(Dim_); 
   //Vorig.resize(Dim_);
   V1.resize(Dim_);  
@@ -18,9 +18,11 @@ LANCZOS::LANCZOS(const int Dim_) : Dim (Dim_)
 }//constructor
 
 
-double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
+double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2, Array<l_double,1>& Psi)
 // Reduces the Hamiltonian Matrix to a tri-diagonal form 
 {
+
+  Psi.resize(Dim);
   int ii, jj;
   int iter, MAXiter, EViter;
   int min;
@@ -48,7 +50,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
   iter = 0;
 
   for (EViter = 0; EViter < Evects2; EViter++) {//0=get E0 converge, 1=get eigenvec
-
+    
     iter = 0;
     //create a "random" starting vector
     V0=0;
@@ -200,7 +202,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
   //Normalize(Psi,N);
   Normalize(Psi);
 
-  //cout<<Psi<<" Psi \n";
+  cout<<Psi<<" Psi \n";
 
 //  V2 = sum(Ham(i,j)*Psi(j),j);
 //  for (ii=0;ii<Dim;ii++)
