@@ -125,7 +125,7 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 
     stringstream ss (stringstream::in | stringstream::out);
 
-    for  (unsigned int currentLine = 0; currentLine < rawLines.size()-1; currentLine+=3)
+    for  (unsigned int currentLine = 0; currentLine < rawLines.size()-1; currentLine+=4)
       //for  (unsigned int currentLine = 0; currentLine < 9; currentLine+=3)
     {
         //cout<<currentLine<<" ";
@@ -154,7 +154,7 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
         //read in bonds
 
         
-        ss << rawLines.at(currentLine+1);
+        ss << rawLines.at(currentLine+2);
         string teststring;
         tempGraph.AdjacencyList.resize(tempGraph.NumberBonds);
         for(int b=0; b<tempGraph.NumberBonds;b++){
@@ -167,7 +167,7 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
         ss.clear();
 
         //read in subclusters
-        ss << rawLines.at(currentLine+2);   
+        ss << rawLines.at(currentLine+3);   
 	int subSize(0);
 	while(!ss.eof()){
 	  ss >> teststring;
