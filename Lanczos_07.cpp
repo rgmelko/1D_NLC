@@ -9,7 +9,7 @@ LANCZOS::LANCZOS(const int Dim_) : Dim (Dim_)
   STARTIT = 5;
   CONV_PREC = 1E-10;
 
-  Psi.resize(Dim_);
+  //  Psi.resize(Dim_);
   V0.resize(Dim_); 
   //Vorig.resize(Dim_);
   V1.resize(Dim_);  
@@ -18,15 +18,18 @@ LANCZOS::LANCZOS(const int Dim_) : Dim (Dim_)
 }//constructor
 
 
-double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
+double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2, Array<l_double,1>& Psi)
 // Reduces the Hamiltonian Matrix to a tri-diagonal form 
 {
+
+  Psi.resize(Dim);
   int ii, jj;
   int iter, MAXiter, EViter;
   int min;
   int Lexit;
   l_double Norm;
   l_double E0;
+  l_double Energy;
   vector<l_double> Ord(Neigen); //a vector for the ordered eigenvalues
   
   int LIT;   //max number of Lanczos iterations
@@ -48,7 +51,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
   iter = 0;
 
   for (EViter = 0; EViter < Evects2; EViter++) {//0=get E0 converge, 1=get eigenvec
-
+    
     iter = 0;
     //create a "random" starting vector
     V0=0;
@@ -195,18 +198,22 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2)
         if (d(ii) < d(min))  min = ii;
     }
     
+    if (EViter == 0) Energy = E0;
+
+
   }//repeat (EViter) to transfrom eigenvalues H basis
   
   //Normalize(Psi,N);
   Normalize(Psi);
 
-  //cout<<Psi<<" Psi \n";
+  //  cout<<Psi<<" Psi \n";
 
 //  V2 = sum(Ham(i,j)*Psi(j),j);
 //  for (ii=0;ii<Dim;ii++)
 //    cout<<ii<<" "<<V2(ii)/Psi(ii)<<" EVdiv \n";
 
-  return E0;
+//  return E0;
+  return Energy;
 
 }//end Diag
 

@@ -27,11 +27,11 @@ class LANCZOS{
   public:
     //Data
     int Dim; //dimension
-    Array<l_double,1> Psi;  //eigenvector
+    //    Array<l_double,1> Psi;  //eigenvector
 
    //Methods
    LANCZOS(const int);
-   double Diag(const GENHAM&, const int, const int);
+   double Diag(const GENHAM&, const int, const int, Array<l_double,1>&);
    void tred3(Array<double,2>& , Array<double,1>& , Array<double,1>& e, const int );
 
 
