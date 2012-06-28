@@ -46,7 +46,7 @@ int main(){
     ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
 
 
-    ofstream fout("output.dat");
+    ofstream fout("output_1D.dat");
     fout.precision(10);
     cout.precision(10);
     
@@ -81,8 +81,8 @@ int main(){
 	
       }
       
-      fout<<"h="<<h<<" J="<<J;	
-      fout <<"  RunningSumHigh = "<< RunningSumHigh<< endl<<endl;
+      fout<<"h= "<<h<<" J= "<<J;	
+      fout <<" Energy= "<< RunningSumHigh<< endl<<endl;
       
       WeightHigh.clear();
       RunningSumHigh=0;
