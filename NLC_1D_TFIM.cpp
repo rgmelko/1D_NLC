@@ -43,7 +43,7 @@ int main(){
     
     vector<double> WeightHigh;
 
-    ReadGraphsFromFile(fileGraphs, "rectanglegraphs.dat");
+    ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
 
 
     ofstream fout("output.dat");

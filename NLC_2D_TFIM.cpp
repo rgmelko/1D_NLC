@@ -62,7 +62,7 @@ int main(){
 	
 	
 	//---High-Field---
-	GENHAM HV(fileGraphs.at(i).NumberSites,J,h,fileGraphs.at(i).AdjacencyList,fileGraphs.at(i).LowField); 
+	GENHAM HV(fileGraphs.at(i).Order,J,h,fileGraphs.at(i).AdjacencyList,fileGraphs.at(i).LowField); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
