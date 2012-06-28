@@ -107,13 +107,13 @@ void WriteGraphsToFile( vector< graph > & graphList, std::string file)
 
 void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 {
-    ifstream input(file.c_str());
-    vector< string > rawLines;
-    int currentGraph;
-    const int memberCount = 6;
-    graph tempGraph;
-
-    while ( !input.eof() )
+  ifstream input(file.c_str());
+  vector< string > rawLines;
+  int currentGraph;
+  const int memberCount = 5;
+  graph tempGraph;
+  
+  while ( !input.eof() )
     {
         rawLines.resize(rawLines.size() + 1);
         getline(input, rawLines.back()) ; 
@@ -125,71 +125,75 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
 
     stringstream ss (stringstream::in | stringstream::out);
 
-    for  (unsigned int currentLine = 0; currentLine < rawLines.size()-1; currentLine+=3)
-      //for  (unsigned int currentLine = 0; currentLine < 9; currentLine+=3)
+    for  (unsigned int currentLine = 0; currentLine < rawLines.size()-1; currentLine+=4)
     {
-        //cout<<currentLine<<" ";
-        currentGraph = currentLine/memberCount;
-        //cout<<currentGraph<<" ";
+
         unsigned int currentChar = 0;
         string currentNumber;
-        //cout<<currentLine % memberCount<<endl;
     
         ss << rawLines.at(currentLine);
           
         ss >> tempGraph.Identifier;
         ss >> tempGraph.NumberSites;
-        ss >> tempGraph.NumberBonds;
+	//    ss >> tempGraph.NumberBonds;
         ss >> tempGraph.LatticeConstant;
 	ss >> tempGraph.LowField;
            
         //cout << "Identifier = " <<tempGraph.Identifier << endl;
         //cout << "NumberSites = " << tempGraph.NumberSites << endl;
-        //cout << "Identifier = " <<tempGraph.NumberBonds << endl;
-        //cout << "NumberSites = " << tempGraph.LatticeConstant << endl;
+        //cout << "LatticeConstant = " <<tempGraph.LatticeConstant << endl;
+        //cout << "LowField = " << tempGraph.LowField << endl;
 
         ss.str("");
         ss.clear();
 
         //read in bonds
-
+        ss << rawLines.at(currentLine+2);   
+        int subSize(0);
+	string teststring;
+        while(!ss.eof()){
+	  ss >> teststring;
+	  subSize++;
+        }
+        tempGraph.NumberBonds=subSize/2; // cout << subSize << endl;
+        ss.str("");
+        ss.clear();
+	teststring="";
         
-        ss << rawLines.at(currentLine+1);
-        string teststring;
+        ss << rawLines.at(currentLine+2);
         tempGraph.AdjacencyList.resize(tempGraph.NumberBonds);
         for(int b=0; b<tempGraph.NumberBonds;b++){
           ss >> tempGraph.AdjacencyList[b].first;
           ss >> tempGraph.AdjacencyList[b].second;
           //cout << tempGraph.AdjacencyList[b].first << "," <<tempGraph.AdjacencyList[b].second << endl;
         }
-
         ss.str("");
         ss.clear();
+
+
 
         //read in subclusters
-        ss << rawLines.at(currentLine+2);   
-	int subSize(0);
-	while(!ss.eof()){
-	  ss >> teststring;
-	  subSize++;
-	}
-	subSize/=2; // cout << subSize << endl;
+        ss << rawLines.at(currentLine+3);   
+        subSize=0;
+        while(!ss.eof()){
+            ss >> teststring;
+            subSize++;
+        }
+        subSize/=2; // cout << subSize << endl;
         ss.str("");
         ss.clear();
-	ss << rawLines.at(currentLine+2);
+        ss << rawLines.at(currentLine+3);
         tempGraph.SubgraphList.resize(subSize);
         for(int b=0; b<subSize;b++){
-          ss >> tempGraph.SubgraphList[b].first;
-          ss >> tempGraph.SubgraphList[b].second;
-	  //  cout << tempGraph.SubgraphList[b].first << "," <<tempGraph.SubgraphList[b].second << endl;
+            ss >> tempGraph.SubgraphList[b].first;
+            ss >> tempGraph.SubgraphList[b].second;
+            //  cout << tempGraph.SubgraphList[b].first << "," <<tempGraph.SubgraphList[b].second << endl;
         }
 
         ss.str("");
         ss.clear();
 
         graphList.push_back(tempGraph);
-
-
 
     }   
 
