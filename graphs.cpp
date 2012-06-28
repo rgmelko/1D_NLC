@@ -126,14 +126,10 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
     stringstream ss (stringstream::in | stringstream::out);
 
     for  (unsigned int currentLine = 0; currentLine < rawLines.size()-1; currentLine+=4)
-      //for  (unsigned int currentLine = 0; currentLine < 9; currentLine+=3)
     {
-        //cout<<currentLine<<" ";
-        currentGraph = currentLine/memberCount;
-        //cout<<currentGraph<<" ";
+
         unsigned int currentChar = 0;
         string currentNumber;
-        //cout<<currentLine % memberCount<<endl;
     
         ss << rawLines.at(currentLine);
           
@@ -173,6 +169,8 @@ void ReadGraphsFromFile( vector< graph > & graphList, const string & file)
         }
         ss.str("");
         ss.clear();
+
+
 
         //read in subclusters
         ss << rawLines.at(currentLine+3);   
