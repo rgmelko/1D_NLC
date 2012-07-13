@@ -19,11 +19,11 @@ using namespace std;
 
 BZ_USING_NAMESPACE(blitz)
 
-#include "Lanczos_07.h"
-#include "GenHam.h"
-#include "lapack.h"
-#include "simparam.h"
-#include "graphs.h"
+#include "CPU/Lanczos_07.h"
+#include "CPU/GenHam.h"
+#include "CPU/lapack.h"
+#include "CPU/simparam.h"
+#include "../Graphs/graphs.h"
 
 int main(){
 
@@ -39,11 +39,11 @@ int main(){
     h=prm.hh_;
 
 
-    vector< graph > fileGraphs; //graph objects
+    vector< Graph* > fileGraphs; //graph objects
     
     vector<double> WeightHigh;
 
-    ReadGraphsFromFile(fileGraphs, "lineargraphs.dat");
+    ReadGraphsFromFile(fileGraphs, "lineargraphs.dat", 0);
 
 
     ofstream fout("output_1D.dat");
@@ -62,15 +62,15 @@ int main(){
 	
 	
 	//---High-Field---
-	GENHAM HV(fileGraphs.at(i).NumberSites,J,h,fileGraphs.at(i).AdjacencyList,fileGraphs.at(i).LowField); 
+	GENHAM HV(fileGraphs.at(i)->Order,J,h,fileGraphs.at(i)->AdjacencyList, 0); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
         energy = lancz.Diag(HV, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
         WeightHigh.push_back(energy);
-        for (int j = 0; j<fileGraphs.at(i).SubgraphList.size(); j++)
-	  WeightHigh.back() -= fileGraphs.at(i).SubgraphList[j].second * WeightHigh[fileGraphs.at(i).SubgraphList[j].first];
+        for (int j = 0; j<fileGraphs.at(i)->SubgraphList.size(); j++)
+	  WeightHigh.back() -= fileGraphs.at(i)->SubgraphList[j].second * WeightHigh[fileGraphs.at(i)->SubgraphList[j].first];
 
         cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
 	//        cout<<" energy "<<setprecision(12)<<energy<<endl;
