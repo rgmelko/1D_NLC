@@ -16,9 +16,6 @@ using namespace std;
 #include <stdio.h>
 #include <time.h>
 #include <iomanip>
-#include <blitz/array.h>
-
-BZ_USING_NAMESPACE(blitz)
 
 #include "Lanczos_07.h"
 #include "GenHam.h"

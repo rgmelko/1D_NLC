@@ -1,15 +1,15 @@
-OBJS = NLC_2D_TFIM.o GenHam.o Lanczos_07.o lapack.o graphs.o lanczos.o hamiltonian.o tfising.o xy.o heisenberg.o #Lattice_16B.cpp
+OBJS = NLC_2D_TFIM.o GenHam.o Lanczos_07.o graphs.o tfising.o xy.o heisenberg.o hamiltonian.o lanczos.o #Lattice_16B.cpp
 CC = nvcc
 #CFLAGS = -O2
 CFLAGS = -O2 -gencode arch=compute_20,code=sm_21
-GPULIBS = -lcuda -lcudart -lcublas -lcusparse -L../CUDA/Lanczos/sort/sort/gnu/release -lmgpusort
-LAPACKLIBS = -lblas -llapack
+HEISLIBS = -L../CUDA/Lanczos/sort/sort/gnu/release -lmgpusort -lcuda -lcudart
+LANCLIBS = -lcublas -lcusparse
 
 2d.out: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o 2d.out $(LAPACKLIBS) $(GPULIBS)
+	$(CC) $(CFLAGS) $(OBJS) -o 2d.out $(HEISLIBS) $(LANCLIBS)
 
-NLC_2D_TFIM.o : NLC_2D_TFIM.cu CPU/GenHam.h CPU/Lanczos_07.h CPU/lapack.h CPU/simparam.h ../Graphs/graphs.h ../CUDA/Lanczos/lanczos.h
-	$(CC) $(CFLAGS) -c $(LAPACKLIBS) $(GPULIBS) NLC_2D_TFIM.cu  
+NLC_2D_TFIM.o : NLC_2D_TFIM.cu CPU/GenHam.h CPU/Lanczos_07.h CPU/simparam.h ../Graphs/graphs.h ../CUDA/Lanczos/lanczos.h
+	$(CC) $(CFLAGS) -c NLC_2D_TFIM.cu 
 
 GenHam.o: CPU/GenHam.cpp CPU/GenHam.h CPU/Lanczos_07.h
 	$(CC) $(CFLAGS) -c CPU/GenHam.cpp
@@ -17,17 +17,14 @@ GenHam.o: CPU/GenHam.cpp CPU/GenHam.h CPU/Lanczos_07.h
 Lanczos_07.o: CPU/Lanczos_07.cpp CPU/GenHam.h CPU/Lanczos_07.h
 	$(CC) $(CFLAGS) -c CPU/Lanczos_07.cpp
 
-lapack.o: CPU/lapack.cpp CPU/lapack.h 
-	$(CC) $(CFLAGS) -c CPU/lapack.cpp
-
 graphs.o: ../Graphs/graphs.cpp ../Graphs/graphs.h
 	$(CC) $(CFLAGS) -c ../Graphs/graphs.cpp
 
 lanczos.o : ../CUDA/Lanczos/lanczos.cu ../CUDA/Lanczos/lanczos.h 
-	$(CC) $(CFLAGS) -c $(GPULIBS) ../CUDA/Lanczoslanczos.cu
+	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/lanczos.cu $(LANCLIBS)
 
 hamiltonian.o : ../CUDA/Lanczos/hamiltonian.cu ../CUDA/Lanczos/hamiltonian.h
-	$(CC) $(CFLAGS) -c $(GPULIBS) ../CUDA/Lanczos/hamiltonian.cu
+	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/hamiltonian.cu $(HEISLIBS)
 
 heisenberg.o : ../CUDA/Lanczos/heisenberg.cu ../CUDA/Lanczos/hamiltonian.h
 	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/heisenberg.cu

@@ -1,14 +1,13 @@
 #include "GenHam.h"
 
 //----------------------------------------------------------
-GENHAM::GENHAM(const int Ns, const h_float J_, const h_float h_, vector <pair<int,int> > BBond_, bool Field)  
+GENHAM::GENHAM(const int Ns, const long double J_, const long double h_, vector <pair<int,int> > BBond_, bool Field)  
   : JJ(J_), hh(h_), Bond(BBond_)
 //create bases and determine dim of full Hilbert space
 {
   int Dim;
   Nsite = Ns;
   LowField = Field;
-  
 
   Dim = 2;  //  S=1/2 models : two states
   for (int ch=1; ch<Nsite; ch++) Dim *=2;
@@ -38,7 +37,7 @@ void GENHAM::printg()
 {
   int i,j;
   vector<int> tempP;
-  vector<h_float> tempV;
+  vector<long double> tempV;
 
   for (i=0; i<PosHam.size(); i++){
     //cout<<PosHam[i][0]<<" * ";
@@ -58,7 +57,7 @@ void GENHAM::SparseHamJQ()
   int ii, jj;
 
   vector<long> tempBas;
-  vector<h_float> tempH;
+  vector<long double> tempH;
   unsigned long tempi, tempj, tempod;
   int si, sj,sk,sl;
   double tempD;

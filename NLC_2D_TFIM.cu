@@ -12,13 +12,9 @@ using namespace std;
 #include <time.h>
 #include "CPU/Lanczos_07.h"
 #include "CPU/GenHam.h"
-#include "CPU/lapack.h"
 #include "CPU/simparam.h"
-#include <blitz/array.h>
 #include "../CUDA/Lanczos/lanczos.h"
 #include "../Graphs/graphs.h"
-
-BZ_USING_NAMESPACE(blitz);
 
 int main(int argc, char **argv) 
 {
@@ -29,7 +25,7 @@ int main(int argc, char **argv)
     double J;
     double h;
 
-    Array<l_double,1> eVec;
+    vector< long double > eVec;
 
     J=prm.JJ_;
     h=prm.hh_;
@@ -41,7 +37,7 @@ int main(int argc, char **argv)
     vector< Graph* > fileGraphs;
     vector< double > WeightHigh;
 
-    ReadGraphsFromFile(fileGraphs, "rectanglegraphs.dat", TypeFlag);
+    //ReadGraphsFromFile(fileGraphs, "rectanglegraphs.dat", TypeFlag);
 
     int HowMany = 30;
 
@@ -50,7 +46,7 @@ int main(int argc, char **argv)
     cout.precision(10);
 
     J=1;
-
+    
     for(int hh=1; hh<10; hh++) 
     {
         h = hh;
@@ -58,15 +54,15 @@ int main(int argc, char **argv)
         WeightHigh.push_back(-h); //Weight for site zero
         double RunningSumHigh = WeightHigh[0];
 
-        /*d_hamiltonian* HamilLancz = (d_hamiltonian*)malloc(HowMany*sizeof(d_hamiltonian));
+        d_hamiltonian* HamilLancz = (d_hamiltonian*)malloc(HowMany*sizeof(d_hamiltonian));
         parameters* data = (parameters*)malloc(HowMany*sizeof(parameters));
         double** groundstates = (double**)malloc(HowMany*sizeof(double*));
         double** eigenvalues = (double**)malloc(HowMany*sizeof(double*));
         int* NumElem = (int*)malloc(HowMany*sizeof(int));
         int** Bonds = (int**)malloc(HowMany*sizeof(int*));
-        */
+        
         unsigned int i = 1;
-        while ( i<fileGraphs.size() )//&& fileGraphs.at(i)->Order < 14) //skip the zeroth graph
+        while ( i<fileGraphs.size() && fileGraphs.at(i)->Order < 14) //skip the zeroth graph
         {
             GENHAM HV(fileGraphs.at(i)->Order, J, h, fileGraphs.at(i)->AdjacencyList, TypeFlag);
 
@@ -86,8 +82,8 @@ int main(int argc, char **argv)
             cout<<endl;
             i++;
         } 
-
-        /*if( argv[0] == "--gpu" || argv[0] == "-g" )
+        
+        if( argv[0] == "--gpu" || argv[0] == "-g" )
         {
             while ( i < fileGraphs.size() )
             {
@@ -165,15 +161,16 @@ int main(int argc, char **argv)
                 cout<<endl;
                 i++;
             }
-        }*/
+        }
 
         fout<<"h= "<<h<<" J= "<<J;
         fout <<" Energy= "<< RunningSumHigh<< endl<<endl;
 
         WeightHigh.clear();
         RunningSumHigh=0;
+    
     }
-
+    
     fout.close();
     return 0;
 
