@@ -41,8 +41,8 @@ void GENHAM::printg()
 
   for (i=0; i<PosHam.size(); i++){
     //cout<<PosHam[i][0]<<" * ";
-    cout<<i+1<<" * ";
-    for (j=0; j<=PosHam[i][0]; j++){
+    cout<<"Row: "<<i+1<<" - ";
+    for (j=1; j<=PosHam[i][0]; j++){
       cout<<"("<<PosHam[i][j]+1<<","<<ValHam[i][j]<<") ";
     }
     cout<<endl;
@@ -83,7 +83,6 @@ void GENHAM::SparseHamJQ()
       tempod = tempi;
       // sj = Bond(T0,1); 
       tempod = tempod^(1<<si);   //toggle bit 
-
 
       if (BasPos.at(tempod) > ii){ //build only upper half of matrix
         tempBas.push_back(BasPos.at(tempod));

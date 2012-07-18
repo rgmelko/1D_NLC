@@ -233,10 +233,10 @@ void LANCZOS::apply(vector< long double > & U, const GENHAM& H, const vector< lo
 
     for (int ii = 0; ii < Dim; ii++) 
     {
-        for (int jj=1; jj<=H.PosHam[ii][0]; jj++)
+        for (int jj = 1; jj <= H.PosHam[ii][0]; jj++)
         {
             kk = H.PosHam[ii][jj]; //position index
-            U[ii] += H.ValHam[ii][jj] * V[kk];
+            U.at(ii) += H.ValHam.at(ii).at(jj) * V.at(kk);
             if (ii != kk) U[kk] += H.ValHam[ii][jj] * V[ii]; //contribution to lower half
         }
     }

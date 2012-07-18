@@ -1,7 +1,7 @@
 OBJS = NLC_2D_TFIM.o GenHam.o Lanczos_07.o graphs.o tfising.o xy.o heisenberg.o hamiltonian.o lanczos.o #Lattice_16B.cpp
 CC = nvcc
 #CFLAGS = -O2
-CFLAGS = -O2 -gencode arch=compute_20,code=sm_21
+CFLAGS = -O2 -g -G -gencode arch=compute_20,code=sm_21
 HEISLIBS = -L../CUDA/Lanczos/sort/sort/gnu/release -lmgpusort -lcuda -lcudart
 LANCLIBS = -lcublas -lcusparse
 

@@ -15,13 +15,9 @@ using namespace std;
 #include <stdio.h>
 #include <time.h>
 #include <iomanip>
-#include <blitz/array.h>
-
-BZ_USING_NAMESPACE(blitz)
 
 #include "CPU/Lanczos_07.h"
 #include "CPU/GenHam.h"
-#include "CPU/lapack.h"
 #include "CPU/simparam.h"
 #include "../Graphs/graphs.h"
 
@@ -33,7 +29,7 @@ int main(){
     double J;
     double h;
 
-    Array<l_double,1> eVec;
+    vector<long double> eVec;
 
     J=prm.JJ_;
     h=prm.hh_;
@@ -62,12 +58,13 @@ int main(){
 	
 	
 	//---High-Field---
-	GENHAM HV(fileGraphs.at(i)->Order,J,h,fileGraphs.at(i)->AdjacencyList, 0); 
+	    GENHAM HV(fileGraphs.at(i)->Order,J,h,fileGraphs.at(i)->AdjacencyList, 0); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
+        HV.printg();
         energy = lancz.Diag(HV, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
-
+        cout<<"Energy: "<<energy<<endl;
         WeightHigh.push_back(energy);
         for (int j = 0; j<fileGraphs.at(i)->SubgraphList.size(); j++)
 	  WeightHigh.back() -= fileGraphs.at(i)->SubgraphList[j].second * WeightHigh[fileGraphs.at(i)->SubgraphList[j].first];

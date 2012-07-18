@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     vector< Graph* > fileGraphs;
     vector< double > WeightHigh;
 
-    //ReadGraphsFromFile(fileGraphs, "rectanglegraphs.dat", TypeFlag);
+    ReadGraphsFromFile(fileGraphs, "rectanglegraphs.dat", TypeFlag);
 
     int HowMany = 30;
 
@@ -64,10 +64,12 @@ int main(int argc, char **argv)
         unsigned int i = 1;
         while ( i<fileGraphs.size() && fileGraphs.at(i)->Order < 14) //skip the zeroth graph
         {
+            cout<<"Current Graph: "<<i<<endl;
             GENHAM HV(fileGraphs.at(i)->Order, J, h, fileGraphs.at(i)->AdjacencyList, TypeFlag);
 
             LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
             HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
+            HV.printg();
             energy = lancz.Diag(HV, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
 
             WeightHigh.push_back(energy);
