@@ -1,29 +1,39 @@
-OBJS = NLC_2D_TFIM.cpp GenHam.o  Lanczos_07.o lapack.o graphs.o #Lattice_16B.cpp
-CC = g++
-#CFLAGS = -O2 
-CFLAGS = -O2 -arch x86_64
-#LIBS = -lm -framework veclib
-LIBS = -framework Accelerate
+OBJS = NLC_2D_TFIM.o GenHam.o Lanczos_07.o graphs.o tfising.o xy.o heisenberg.o hamiltonian.o lanczos.o #Lattice_16B.cpp
+CC = nvcc
+#CFLAGS = -O2
+CFLAGS = -O2 -gencode arch=compute_20,code=sm_21
+HEISLIBS = -L../CUDA/Lanczos/sort/sort/gnu/release -lmgpusort -lcuda -lcudart
+LANCLIBS = -lcublas -lcusparse
 
 2d.out: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o 2d.out $(LIBS)
+	$(CC) $(CFLAGS) $(OBJS) -o 2d.out $(HEISLIBS) $(LANCLIBS)
 
-NLC_2D_TFIM.o : NLC_2D_TFIM.cpp GenHam.h Lanczos_07.h lapack.h simparam.h
-	$(CC) $(CFLAGS) -c ED_Lan_1107.cpp
+NLC_2D_TFIM.o : NLC_2D_TFIM.cu CPU/GenHam.h CPU/Lanczos_07.h CPU/simparam.h graphs.h ../CUDA/Lanczos/lanczos.h
+	$(CC) $(CFLAGS) -c NLC_2D_TFIM.cu 
 
-GenHam.o: GenHam.cpp GenHam.h Lanczos_07.h
-	$(CC) $(CFLAGS) -c GenHam.cpp
+GenHam.o: CPU/GenHam.cpp CPU/GenHam.h CPU/Lanczos_07.h
+	$(CC) $(CFLAGS) -c CPU/GenHam.cpp
 
-#Lattice_16B.o: Lattice_16B.cpp GenHam.h 
-#	$(CC) $(CFLAGS) -c Lattice_16B.cpp
-
-Lanczos_07.o: Lanczos_07.cpp GenHam.h Lanczos_07.h
-	$(CC) $(CFLAGS) -c Lanczos_07.cpp
-
-lapack.o: lapack.cpp lapack.h 
-	$(CC) $(CFLAGS) -c lapack.cpp
+Lanczos_07.o: CPU/Lanczos_07.cpp CPU/GenHam.h CPU/Lanczos_07.h
+	$(CC) $(CFLAGS) -c CPU/Lanczos_07.cpp
 
 graphs.o: graphs.cpp graphs.h
 	$(CC) $(CFLAGS) -c graphs.cpp
+
+lanczos.o : ../CUDA/Lanczos/lanczos.cu ../CUDA/Lanczos/lanczos.h 
+	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/lanczos.cu $(LANCLIBS)
+
+hamiltonian.o : ../CUDA/Lanczos/hamiltonian.cu ../CUDA/Lanczos/hamiltonian.h
+	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/hamiltonian.cu $(HEISLIBS)
+
+heisenberg.o : ../CUDA/Lanczos/heisenberg.cu ../CUDA/Lanczos/hamiltonian.h
+	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/heisenberg.cu
+
+xy.o : ../CUDA/Lanczos/xy.cu ../CUDA/Lanczos/hamiltonian.h
+	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/xy.cu
+
+tfising.o : ../CUDA/Lanczos/tfising.cu ../CUDA/Lanczos/hamiltonian.h
+	$(CC) $(CFLAGS) -c ../CUDA/Lanczos/tfising.cu
+
 clean :
 	rm *.o
