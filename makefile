@@ -1,29 +1,25 @@
-OBJS = NLC_1D_TFIM.cpp GenHam.o  Lanczos_07.o lapack.o graphs.o #Lattice_16B.cpp
+OBJS = NLC_1D_TFIM.o GenHam.o Lanczos_07.o graphs.o #Lattice_16B.cpp
 CC = g++
-#CFLAGS = -O2 
-CFLAGS = -O2 -arch x86_64
+CFLAGS = -O2 
+#CFLAGS = -O2 -arch x86_64
 #LIBS = -lm -framework veclib
-LIBS = -framework Accelerate
 
 1d.out: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o 1d.out $(LIBS)
 
-NLC_1D_TFIM.o : NLC_1D_TFIM.cpp GenHam.h Lanczos_07.h lapack.h simparam.h
-	$(CC) $(CFLAGS) -c ED_Lan_1107.cpp
+NLC_1D_TFIM.o : NLC_1D_TFIM.cpp CPU/GenHam.h CPU/Lanczos_07.h CPU/simparam.h
+	$(CC) $(CFLAGS) -c NLC_1D_TFIM.cpp
 
-GenHam.o: GenHam.cpp GenHam.h Lanczos_07.h
-	$(CC) $(CFLAGS) -c GenHam.cpp
+GenHam.o: CPU/GenHam.cpp CPU/GenHam.h CPU/Lanczos_07.h
+	$(CC) $(CFLAGS) -c CPU/GenHam.cpp
 
 #Lattice_16B.o: Lattice_16B.cpp GenHam.h 
 #	$(CC) $(CFLAGS) -c Lattice_16B.cpp
 
-Lanczos_07.o: Lanczos_07.cpp GenHam.h Lanczos_07.h
-	$(CC) $(CFLAGS) -c Lanczos_07.cpp
+Lanczos_07.o: CPU/Lanczos_07.cpp CPU/GenHam.h CPU/Lanczos_07.h
+	$(CC) $(CFLAGS) -c CPU/Lanczos_07.cpp
 
-lapack.o: lapack.cpp lapack.h 
-	$(CC) $(CFLAGS) -c lapack.cpp
-
-graphs.o: graphs.cpp graphs.h
-	$(CC) $(CFLAGS) -c graphs.cpp
+graphs.o: ../Graphs/graphs.cpp ../Graphs/graphs.h
+	$(CC) $(CFLAGS) -c ../Graphs/graphs.cpp
 clean :
 	rm *.o
