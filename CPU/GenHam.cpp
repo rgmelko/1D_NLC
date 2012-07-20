@@ -41,8 +41,8 @@ void GENHAM::printg()
 
   for (i=0; i<PosHam.size(); i++){
     //cout<<PosHam[i][0]<<" * ";
-    cout<<"Row: "<<i+1<<" - ";
-    for (j=1; j<=PosHam[i][0]; j++){
+    cout<<i+1<<" * ";
+    for (j=0; j<=PosHam[i][0]; j++){
       cout<<"("<<PosHam[i][j]+1<<","<<ValHam[i][j]<<") ";
     }
     cout<<endl;

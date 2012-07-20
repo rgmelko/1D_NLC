@@ -62,25 +62,24 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
         V0.assign(Dim, 0.);
         for (unsigned int vi=0; vi < V0.size(); vi++) 
         { 
-            if (vi%4 == 0) V0[vi]=1.0;
-            else if (vi%5 == 0) V0[vi]=-2.0;
-            else if (vi%7 == 0) V0[vi]=3.0;
-            else if (vi%9 == 0) V0[vi]=-4.0;
+            if (vi%4 == 0) V0[vi] = 1.0;
+            else if (vi%5 == 0) V0[vi] = -2.0;
+            else if (vi%7 == 0) V0[vi] = 3.0;
+            else if (vi%9 == 0) V0[vi] = -4.0;
         }
         Normalize(V0);  
    
         if (EViter == 1) for( ii = 0; ii < Dim; ii++) Psi[ii] = V0[ii] * (Hmatrix[0][min]);
     
         V1.assign(Dim, 0.);
-        beta[0]=0;  //beta_0 not defined
+        beta[0] = 0;  //beta_0 not defined
     
         //****** do V1=H|V0> below
         apply(V1, SparseH, V0);
 
         alpha[0] = 0;
-        for (ii=0; ii < Dim; ii++) alpha[0] += V0[ii] * V1[ii];
-        for (ii=0; ii < Dim; ii++) V1[ii] -= alpha[0] * V0[ii];
-    
+        for (ii = 0; ii < Dim; ii++) alpha[0] += V0[ii] * V1[ii];
+        for (ii = 0; ii < Dim; ii++) V1[ii] -= alpha[0] * V0[ii];
         Norm = 0;
         for ( ii=0; ii < Dim; ii++ ) Norm += V1[ii]*V1[ii];
         beta[1] = sqrt(Norm);
@@ -135,7 +134,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
                 min = 0;
                 for (unsigned int oo=0; oo<Ord.size(); oo++) 
                 {
-                    if ( d[0] < Ord.at(oo) ) {
+                    if ( d[0] < Ord[oo] ) {
                         Ord.insert(Ord.begin() + oo, d[0]);
                         Ord.pop_back();
                         break;
@@ -144,7 +143,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
                 for (ii=1;ii<=iter;ii++){
                     if (d[ii] < d[min])  min = ii;
                     for (unsigned int o=0; o<Ord.size(); o++) {
-                        if (d[ii] < Ord.at(o)) {
+                        if ( d[ii] < Ord[o] ) {
                             Ord.insert(Ord.begin() + o, d[ii]);
                             Ord.pop_back();
                             break;
@@ -236,7 +235,7 @@ void LANCZOS::apply(vector< long double > & U, const GENHAM& H, const vector< lo
         for (int jj = 1; jj <= H.PosHam[ii][0]; jj++)
         {
             kk = H.PosHam[ii][jj]; //position index
-            U.at(ii) += H.ValHam.at(ii).at(jj) * V.at(kk);
+            U[ii] += H.ValHam[ii][jj] * V[kk];
             if (ii != kk) U[kk] += H.ValHam[ii][jj] * V[ii]; //contribution to lower half
         }
     }

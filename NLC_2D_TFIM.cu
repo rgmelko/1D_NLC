@@ -14,7 +14,7 @@ using namespace std;
 #include "CPU/GenHam.h"
 #include "CPU/simparam.h"
 #include "../CUDA/Lanczos/lanczos.h"
-#include "../Graphs/graphs.h"
+#include "graphs.h"
 
 int main(int argc, char **argv) 
 {
@@ -30,16 +30,16 @@ int main(int argc, char **argv)
     J=prm.JJ_;
     h=prm.hh_;
 
-    ifstream fin("rectanglegraphs.dat");
-    bool TypeFlag;
-    fin >> TypeFlag;
-    fin.close();
-    vector< Graph* > fileGraphs;
+    //ifstream fin("rectanglegraphs.dat");
+    //bool TypeFlag = false;
+    /*fin >> TypeFlag;
+    fin.close();*/
+    vector< graph > fileGraphs;
     vector< double > WeightHigh;
 
-    ReadGraphsFromFile(fileGraphs, "rectanglegraphs.dat", TypeFlag);
+    ReadGraphsFromFile(fileGraphs, "rectanglegraphs.dat");
 
-    int HowMany = 30;
+    //int HowMany = 30;
 
     ofstream fout("output_2D.dat");
     fout.precision(10);
@@ -54,27 +54,54 @@ int main(int argc, char **argv)
         WeightHigh.push_back(-h); //Weight for site zero
         double RunningSumHigh = WeightHigh[0];
 
-        d_hamiltonian* HamilLancz = (d_hamiltonian*)malloc(HowMany*sizeof(d_hamiltonian));
-        parameters* data = (parameters*)malloc(HowMany*sizeof(parameters));
-        double** groundstates = (double**)malloc(HowMany*sizeof(double*));
-        double** eigenvalues = (double**)malloc(HowMany*sizeof(double*));
-        int* NumElem = (int*)malloc(HowMany*sizeof(int));
-        int** Bonds = (int**)malloc(HowMany*sizeof(int*));
+        d_hamiltonian* HamilLancz = (d_hamiltonian*)malloc(sizeof(d_hamiltonian));
+        parameters* data = (parameters*)malloc(sizeof(parameters));
+        double** groundstates = (double**)malloc(sizeof(double*));
+        double** eigenvalues = (double**)malloc(sizeof(double*));
+        eigenvalues[ 0 ] = (double*)malloc(sizeof(double));
+        int* NumElem = (int*)malloc(sizeof(int));
+        int** Bonds = (int**)malloc(sizeof(int*));
         
         unsigned int i = 1;
-        while ( i<fileGraphs.size() && fileGraphs.at(i)->Order < 14) //skip the zeroth graph
-        {
-            cout<<"Current Graph: "<<i<<endl;
-            GENHAM HV(fileGraphs.at(i)->Order, J, h, fileGraphs.at(i)->AdjacencyList, TypeFlag);
 
-            LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
-            HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-            HV.printg();
-            energy = lancz.Diag(HV, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+        while ( i<fileGraphs.size() )//&& fileGraphs.at(i).NumberSites < 14) //skip the zeroth graph
+        {
+            cout<<fileGraphs[i].NumberSites<<endl; 
+            if ( (argv[0] == "--gpu" || argv[0] == "-g") && fileGraphs[i].NumberSites > 14)
+            {
+
+                Bonds[ 0 ] = (int*)malloc(sizeof(int)*3*fileGraphs[i].NumberSites);
+                for(unsigned int k = 0; k < fileGraphs[i].NumberSites; k++)
+                {
+                    Bonds[ 0 ][ k ] = k;
+                    Bonds[ 0 ][ k + fileGraphs[i].NumberSites ] = fileGraphs[i].AdjacencyList.at(2*k).second;
+                    Bonds[ 0 ][ k + 2*fileGraphs[i].NumberSites ] = fileGraphs[i].AdjacencyList.at(2*k + 1).second;
+                }
+                    
+                data[ 0 ].Sz = 0;
+                data[ 0 ].dimension = 2;
+                data[ 0 ].J1 = J;
+                data[ 0 ].J2 = h;
+                data[ 0 ].modelType = 2;
+                ConstructSparseMatrix( 1, Bonds, HamilLancz, data, NumElem, 1);
+                lanczos( 1, NumElem, HamilLancz, groundstates, eigenvalues, 200, 1, 1e-12);
+                
+                energy = eigenvalues[ 0 ][0];
+            }
+            
+            else
+            {
+                GENHAM HV(fileGraphs[i].NumberSites, J, h, fileGraphs[i].AdjacencyList, fileGraphs[i].LowField);
+
+                LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
+                HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
+            
+                energy = lancz.Diag(HV, 1, 1, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+            }
 
             WeightHigh.push_back(energy);
-            for (unsigned int j = 0; j < fileGraphs.at(i)->SubgraphList.size(); j++)
-                WeightHigh.back() -= fileGraphs.at(i)->SubgraphList[j].second * WeightHigh[fileGraphs.at(i)->SubgraphList[j].first];
+            for (unsigned int j = 0; j < fileGraphs[i].SubgraphList.size(); j++)
+                WeightHigh.back() -= fileGraphs[i].SubgraphList[j].second * WeightHigh[fileGraphs[i].SubgraphList[j].first];
 
             cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
             //        cout<<" energy "<<setprecision(12)<<energy<<endl;
@@ -84,25 +111,25 @@ int main(int argc, char **argv)
             cout<<endl;
             i++;
         } 
-        
+        /*
         if( argv[0] == "--gpu" || argv[0] == "-g" )
         {
             while ( i < fileGraphs.size() )
             {
                 i += 30;
-                if (fileGraphs.at(i)->Order == 18 )
+                if (fileGraphs.at(i).NumberSites == 18 )
                 {
                     HowMany = 2;
                 }
                 for( int j = 0; j < HowMany; j++)
                 {
                 
-                    Bonds[ j ] = (int*)malloc(sizeof(int)*3*fileGraphs.at(i - j)->Order);
-                    for(unsigned int k = 0; k < fileGraphs.at(i - j)->Order; k++)
+                    Bonds[ j ] = (int*)malloc(sizeof(int)*3*fileGraphs.at(i - j).NumberSites);
+                    for(unsigned int k = 0; k < fileGraphs.at(i - j).NumberSites; k++)
                     {
                         Bonds[ j ][ k ] = k;
-                        Bonds[ j ][ k + fileGraphs.at(i - j)->Order ] = fileGraphs.at(i - j)->AdjacencyList.at(2*k).second;
-                        Bonds[ j ][ k + 2*fileGraphs.at(i - j)->Order ] = fileGraphs.at(i - j)->AdjacencyList.at(2*k + 1).second;
+                        Bonds[ j ][ k + fileGraphs.at(i - j).NumberSites ] = fileGraphs.at(i - j).AdjacencyList.at(2*k).second;
+                        Bonds[ j ][ k + 2*fileGraphs.at(i - j).NumberSites ] = fileGraphs.at(i - j).AdjacencyList.at(2*k + 1).second;
                     }
                     
                     data[ j ].Sz = 0;
@@ -120,9 +147,9 @@ int main(int argc, char **argv)
                 {
                     energy = eigenvalues[ HowMany - 1 - j ][0];
                     WeightHigh.push_back(energy);
-                    for( unsigned int k = 0; k < fileGraphs.at(i - j)->SubgraphList.size(); k++)
+                    for( unsigned int k = 0; k < fileGraphs.at(i - j).SubgraphList.size(); k++)
                     {
-                        WeightHigh.back() -= fileGraphs.at(i - j)->SubgraphList[k].second * WeightHigh[fileGraphs.at(i - j)->SubgraphList[k].first];
+                        WeightHigh.back() -= fileGraphs.at(i - j).SubgraphList[k].second * WeightHigh[fileGraphs.at(i - j).SubgraphList[k].first];
 
                         cout<<"h="<<h<<" J="<<J<<" graph #"<<i - j<<"  ";
                         //cout<<" energy "<<setprecision(12)<<energy<<endl;
@@ -146,14 +173,14 @@ int main(int argc, char **argv)
             while ( i < fileGraphs.size() )
             {
         //---High-Field---
-                GENHAM HV(fileGraphs.at(i)->Order, J, h, fileGraphs.at(i)->AdjacencyList, TypeFlag);
+                GENHAM HV(fileGraphs.at(i).NumberSites, J, h, fileGraphs.at(i).AdjacencyList, fileGraphs.at(i).LowField);
 
                 LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
                 HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
                 energy = lancz.Diag(HV, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
                 WeightHigh.push_back(energy);
-                for (unsigned int j = 0; j<fileGraphs.at(i)->SubgraphList.size(); j++)
-                    WeightHigh.back() -= fileGraphs.at(i)->SubgraphList[j].second * WeightHigh[fileGraphs.at(i)->SubgraphList[j].first];
+                for (unsigned int j = 0; j<fileGraphs.at(i).SubgraphList.size(); j++)
+                    WeightHigh.back() -= fileGraphs.at(i).SubgraphList[j].second * WeightHigh[fileGraphs.at(i).SubgraphList[j].first];
 
                 cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
                 //cout<<" energy "<<setprecision(12)<<energy<<endl;
@@ -163,7 +190,7 @@ int main(int argc, char **argv)
                 cout<<endl;
                 i++;
             }
-        }
+        }*/
 
         fout<<"h= "<<h<<" J= "<<J;
         fout <<" Energy= "<< RunningSumHigh<< endl<<endl;
