@@ -40,10 +40,16 @@ __host__ void lanczos(const int howMany, const int* numElem, d_hamiltonian*& Ham
 	\verbatim
     */
     cudaStream_t stream[howMany];
+    cudaError_t status[howMany];
 
     cublasStatus_t cublasStatus[howMany];
 
     cublasHandle_t linAlgHandle;
+    status[0] = cudaPeekAtLastError();
+    if (status[0] != cudaSuccess)
+    {
+        cout<<"Error before lanczos: "<<cudaGetErrorString(status[0])<<endl;
+    }
     cublasStatus[0] = cublasCreate(&linAlgHandle);
 
     if (cublasStatus[0] != CUBLAS_STATUS_SUCCESS)
@@ -86,7 +92,6 @@ __host__ void lanczos(const int howMany, const int* numElem, d_hamiltonian*& Ham
         }
 
     }
-    cudaError_t status[howMany];
     int** d_H_rowPtrs;
     d_H_rowPtrs = (int**)malloc(howMany*sizeof(int*));
 
@@ -679,9 +684,8 @@ __host__ void lanczos(const int howMany, const int* numElem, d_hamiltonian*& Ham
     {
         for(int j = 0; j < numEig; j++)
         {
-            std::cout<<std::setprecision(12)<<h_ordered[i][j]<<" ";
+            eigenvalues[i][j] = h_ordered[i][j];
         }
-        std::cout<<std::endl;
 
         for(int j = 0; j < iter[i]; j++)
         {

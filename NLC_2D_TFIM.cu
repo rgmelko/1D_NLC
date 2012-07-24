@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
     J = 1;
     
-    for( int hh = 1; hh < 10; hh++ ) 
+    for( int hh = 1; hh < 2; hh++ ) 
     {
         h = hh;
 
@@ -86,31 +86,32 @@ int main(int argc, char **argv)
         unsigned int i = 1;
         while ( i < fileGraphs.size() )//&& fileGraphs.at(i).NumberSites < 14) //skip the zeroth graph
         {
-            if ( gpuFlag && fileGraphs[ i ].NumberSites == 16 || fileGraphs[ i ].NumberSites == 18 || fileGraphs[ i ].NumberSites == 20 )
+            if ( gpuFlag && fileGraphs[ i ].NumberSites == 16 || fileGraphs[ i ].NumberSites == 18 )
             {
                 Bonds[ 0 ] = ( int* ) malloc( sizeof( int ) * 3 * fileGraphs[ i ].NumberSites );
-                cout<<"There should be "<<fileGraphs[i].AdjacencyList.size()<<" bonds"<<endl;
-                cout<<"Printing bonds: "<<endl;
-
                 for ( unsigned int k = 0; k < fileGraphs[ i ].NumberSites; k++ )
                 {
                     Bonds[ 0 ][ k ] = k;
-                    Bonds[ 0 ][ k + fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ 2 * k ].second;
-                    
-                    if (fileGraphs[i-1].NumberSites != 15) Bonds[ 0 ][ k + 2 * fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ 2 * k + 1 ].second;
-                    //cout<<Bonds[0][k+2*fileGraphs[i].NumberSites]<<endl;
+                    Bonds[ 0 ][ k + fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ k ].second;
+                    Bonds[ 0 ][ k + 2 * fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ 2 * k + 1 ].second;
                 }
                     
                 data[ 0 ].nsite = fileGraphs[ i ].NumberSites;
                 data[ 0 ].Sz = 0;
-                data[ 0 ].dimension = ( fileGraphs[i-1].NumberSites == 15 ) ? 1 : 2;
-                data[ 0 ].J1 = J;
+                data[ 0 ].dimension = (fileGraphs[i].AdjacencyList.size() <= fileGraphs[i].NumberSites) ? 1 : 2;
+                data[ 0 ].J1 = 4*J;
                 data[ 0 ].J2 = h;
                 data[ 0 ].modelType = 2;
-                ConstructSparseMatrix( 1, Bonds, HamilLancz, data, NumElem, 0);
+                ConstructSparseMatrix( 1, Bonds, HamilLancz, data, NumElem, 1);
                 lanczos( 1, NumElem, HamilLancz, groundstates, eigenvalues, 200, 1, 1e-12);
                 
                 energy = eigenvalues[ 0 ][ 0 ];
+                //free(Bonds[0]);
+                //cudaFree(HamilLancz[0].rows);
+                //cudaFree(HamilLancz[0].cols);
+                //cudaFree(HamilLancz[0].vals);
+                //cudaFree(eigenvalues[0]);
+                //cudaFree(groundstates[0]);
             }
             
             else
@@ -128,7 +129,7 @@ int main(int argc, char **argv)
                 WeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * WeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
 
             cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
-            //        cout<<" energy "<<setprecision(12)<<energy<<endl;
+            cout<<" energy "<<setprecision(12)<<energy<<endl;
             //        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
             RunningSumHigh += fileGraphs[ i ].LatticeConstant * WeightHigh.back();
             cout<<"RunningSumHigh = "<<RunningSumHigh;

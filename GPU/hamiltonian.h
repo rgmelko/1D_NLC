@@ -26,11 +26,14 @@
 #include "cuda.h"
 #include "cuComplex.h"
 #include <fstream>
-#include "sort/util/cucpp.h" // MGPU utility classes
-#include "sort/inc/mgpusort.hpp"
+//#include "sort/util/cucpp.h" // MGPU utility classes
+//#include "sort/inc/mgpusort.hpp"
 //#include "lattice.h"
 #include "thrust/device_ptr.h"
 #include "thrust/reduce.h"
+#include "thrust/sort.h"
+#include "thrust/iterator/zip_iterator.h"
+#include "thrust/device_vector.h"
 
 using namespace std;
 

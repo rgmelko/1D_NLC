@@ -83,7 +83,7 @@ int main(int argc, char** argv){
 	  WeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * WeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
 
         cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
-	//        cout<<" energy "<<setprecision(12)<<energy<<endl;
+        cout<<" energy "<<setprecision(12)<<energy<<endl;
 	//        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
 	    RunningSumHigh += fileGraphs[ i ].LatticeConstant * WeightHigh.back();
         cout <<"RunningSumHigh = "<< RunningSumHigh;

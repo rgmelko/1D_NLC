@@ -301,8 +301,17 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
             FillDiagonalsTFI<<<d_H[i].sectorDim/512 + 1, 512, device, stream[i]>>>(d_basis[i], d_H[i], d_Bond[i], data[i]);
             break;
         }
+        status[i] = cudaPeekAtLastError();
+        if (status[i] != cudaSuccess)
+        {
+            cout<<"Error launching FillDiagonals: "<<cudaGetErrorString(status[i])<<endl;
+        }
     }
-
+    status[0] = cudaThreadSynchronize();
+    if (status[0] != cudaSuccess)
+    {
+        cout<<"Error synchronizing after FillDiagonals: "<<cudaGetErrorString(status[0])<<endl;
+    }
     for(int i = 0; i < howMany; i++)
     {
         status[i] = cudaStreamSynchronize(stream[i]);
@@ -320,7 +329,6 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
         }
 
         //--------Launch kernel to create offdiagonal Hamiltonian elements-------
-
         switch( data[i].modelType ) 
         {
 
@@ -408,14 +416,16 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
 
     }
 
-    cudaThreadSynchronize();
-    
+    status[0] = cudaThreadSynchronize();
+    if( status[0] != cudaSuccess)
+    {
+        cout<<"Error synchronizing after filling Hamiltonians: "<<cudaGetErrorString(status[0])<<endl;
+    }
     for(int i = 0; i < howMany; i++)
     {
-        //thrust::device_ptr<int> red_ptr(d_H[i].set);
-        //numElem[i] = thrust::reduce(red_ptr, red_ptr + rawSize[i]);
+        thrust::device_ptr<int> red_ptr(d_H[i].set);
+        numElem[i] = thrust::reduce(red_ptr, red_ptr + rawSize[i]);
     }
-
     //----Free GPU storage for basis and bond information which is not needed------
 
     for(int i = 0; i < howMany; i++)
@@ -451,12 +461,27 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
     float** valsBuffer = (float**)malloc(howMany*sizeof(float*));
     int sortNumber[howMany];
 
+
     //-------Row-sort Hamiltonian to eliminate zero-valued elements---------
 
     for(int i = 0; i<howMany; i++)
     {
 
-        sortEngine_t engine;
+        thrust::device_ptr<int>   keyPointer(d_H[i].rows);
+        thrust::device_ptr<int>   colPointer(d_H[i].cols);
+        thrust::device_ptr<float> valPointer(d_H[i].vals);
+
+        typedef thrust::device_vector<int>::iterator      IntIterator;
+        typedef thrust::device_vector<float>::iterator    FloatIterator;
+        typedef thrust::tuple<IntIterator, FloatIterator> SortTuple;
+        typedef thrust::zip_iterator<SortTuple>           SortIterator;
+
+        SortIterator SortValuesFirst = thrust::make_zip_iterator(make_tuple(colPointer, valPointer));
+        SortIterator SortValuesLast  = thrust::make_zip_iterator(make_tuple(colPointer + rawSize[i], valPointer + rawSize[i]));
+
+        thrust::sort_by_key(keyPointer, keyPointer + rawSize[i], SortValuesFirst);
+
+        /*sortEngine_t engine;
     
         sortStatus_t sortstatus = sortCreateEngine("sort/sort/src/cubin64/", &engine);
 
@@ -468,14 +493,19 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
         sortData.AttachVal(0, (unsigned int*)d_H[i].cols);
         sortData.AttachVal(1, (unsigned int*)d_H[i].vals);
 
+        cout<<"Done attaching data for sort"<<endl;
+
         sortNumber[i] = rawSize[i];
 
         sortData.Alloc(engine, sortNumber[i], 2);
+
+        cout<<"Done allocating room for sort"<<endl;
 
         sortData.firstBit = 0;
         sortData.endBit = 31; //2*lattice_Size[i];
 
         sortArray(engine, &sortData);
+        */
 
         //-----Allocate final Hamiltonian storage and copy data to it-------
 
@@ -501,24 +531,28 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
         }
 
         //half of these are commented out to get check indexed sort vs nonindexed
-        cudaMemcpy(hamilLancz[i].rows, (int*)sortData.keys[0], numElem[i]*sizeof(int), cudaMemcpyDeviceToDevice);
+        cudaMemcpy(hamilLancz[i].rows, d_H[i].rows, numElem[i]*sizeof(int), cudaMemcpyDeviceToDevice);
 
         //cudaMemcpy(hamilLancz[i].rows, (int*)sortdata.values1[0], numElem[i]*sizeof(int), cudaMemcpyDeviceToDevice);
-        cudaMemcpy(hamilLancz[i].cols, (int*)sortData.values1[0], numElem[i]*sizeof(int), cudaMemcpyDeviceToDevice);
+        cudaMemcpy(hamilLancz[i].cols, d_H[i].cols, numElem[i]*sizeof(int), cudaMemcpyDeviceToDevice);
 
         //cudaMemcpy(hamilLancz[i].cols, (int*)sortdata.values2[0], numElem[i]*sizeof(int), cudaMemcpyDeviceToDevice);
         cudaMalloc((void**)&valsBuffer[i], numElem[i]*sizeof(float));
 
-        cudaMemcpy(valsBuffer[i], (float*)sortData.values2[0], numElem[i]*sizeof(float), cudaMemcpyDeviceToDevice);
+        cudaMemcpy(valsBuffer[i], d_H[i].vals, numElem[i]*sizeof(float), cudaMemcpyDeviceToDevice);
 
         //cudaMemcpy(vals_buffer[i], (float*)sortdata.values3[0], numElem[i]*sizeof(float), cudaMemcpyDeviceToDevice);
-
+        
         FullToCOO<<<numElem[i]/1024 + 1, 1024>>>(numElem[i], valsBuffer[i], hamilLancz[i].vals, d_H[i].sectorDim);
-
+        status[i] = cudaPeekAtLastError();
+        if (status[i] != cudaSuccess)
+        {
+            cout<<"Error after FullToCOO: "<<cudaGetErrorString(status[i])<<endl;
+        }
         //int* h_index = (int*)malloc(numElem[i]*sizeof(int));
         // status[i] = cudaMemcpy(h_index, d_H[i].index, numElem[i]*sizeof(int), cudaMemcpyDeviceToHost);
 
-        sortReleaseEngine(engine);
+        //sortReleaseEngine(engine);
     
         cudaFree(d_H[i].rows);
         cudaFree(d_H[i].cols);
@@ -528,7 +562,6 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
         hamilLancz[i].fullDim = d_H[i].fullDim;
         hamilLancz[i].sectorDim = d_H[i].sectorDim;
         countArray[i] = numElem[i];
-
         //----This code dumps the Hamiltonian to a file-------------
         /*
         #if CHECK == 1
@@ -616,10 +649,8 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
     free(tpb);
     free(valsBuffer);
     memcpy(countArray, numElem, howMany*sizeof(int));
-    //cout<<numElem[0]<<endl;
     free(numElem);
     //cudaFree(d_numElem);
-    //return numElem;
 }
 
 /*Function: FullToCOO - takes a full sparse matrix and transforms it into COO format
