@@ -5,8 +5,8 @@ CFLAGS = -O2
 2d-cpu.out: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o 2d-cpu.out $(HEISLIBS) $(LANCLIBS)
 
-NLC_2D_TFIM.o : NLC_2D_TFIM.cu CPU/GenHam.h CPU/Lanczos_07.h CPU/simparam.h graphs.h
-	$(CC) $(CFLAGS) -c NLC_2D_TFIM.cu 
+NLC_2D_TFIM.o : NLC_2D_TFIM.cpp CPU/GenHam.h CPU/Lanczos_07.h CPU/simparam.h graphs.h
+	$(CC) $(CFLAGS) -c NLC_2D_TFIM.cpp 
 
 CPU/GenHam.o: CPU/GenHam.cpp CPU/GenHam.h CPU/Lanczos_07.h
 	$(CC) $(CFLAGS) -c CPU/GenHam.cpp -o CPU/GenHam.o
@@ -18,4 +18,4 @@ graphs.o: graphs.cpp graphs.h
 	$(CC) $(CFLAGS) -c graphs.cpp
 
 clean :
-	rm CPU/*.o && rm *.o && rm GPU/*.o
+	rm CPU/*.o && rm *.o

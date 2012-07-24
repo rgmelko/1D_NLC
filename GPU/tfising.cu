@@ -84,23 +84,19 @@ __global__ void FillDiagonalsTFI(int* d_basis, f_hamiltonian H, int* d_Bond, par
         tempi = d_basis[row];
         (tempBond[site]).x = d_Bond[site];
         (tempBond[site]).y = d_Bond[latticeSize + site];
-
         switch( data.dimension )
         {
             case 1 :
                 H.vals[row] = HDiagPartTFI1D(tempi, latticeSize, tempBond, data.J1);
                 break;
             case 2 :
-                
                 (tempBond[site].z) = d_Bond[2*latticeSize + site];
                 H.vals[row] = HDiagPartTFI2D(tempi, latticeSize, tempBond, data.J1);
                 break;
         }
-
         H.rows[row] = row;
         H.cols[row] = row;
         H.set[row] = 1;
-
     }
 
     else
