@@ -1,4 +1,4 @@
-CC = g++
+CC = mpiCC
 OBJS = NLC_2D_TFIM.o CPU/GenHam.o CPU/Lanczos_07.o graphs.o
 CFLAGS = -O2
 
