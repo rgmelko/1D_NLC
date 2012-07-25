@@ -28,8 +28,9 @@ int main(int argc, char** argv){
     MPI_Init(&argc, &argv);
 
     int rank, size;
-    MPI_COMM_rank(MPI_COMM_WORLD, rank);
-    MPI_COMM_size(MPI_COMM_WORLD, size);
+    MPI_Status status;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     int CurrentArg = 1;
     string InputFile;
@@ -50,8 +51,7 @@ int main(int argc, char** argv){
     double energy;
 
     PARAMS prm;  //Read parameters from param.dat  : see simparam.h
-    double J;
-    double h;
+    double J = 1.;
 
     vector <long double> eVec;
 
@@ -60,8 +60,6 @@ int main(int argc, char** argv){
     vector<double> WeightHigh;
     
     ReadGraphsFromFile(fileGraphs, InputFile);
-
-    J = 1.;
     
     if ( rank == 0 ) 
     {
@@ -73,7 +71,7 @@ int main(int argc, char** argv){
             MPI_Recv(Results + i, 1, MPI_DOUBLE, i + 1, 0, MPI_COMM_WORLD, &status); //grab results from other processes
             fout<<"h = "<<(i + 1)/J<<" J = "<<J<<" Energy = "<<Results[i]<<endl;
         }
-
+        fout.close();
     }
     
     double h = (double)rank/J;
@@ -105,14 +103,8 @@ int main(int argc, char** argv){
         }
         MPI_Send( &RunningSumHigh, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD); //send resulting sum to controller process
 
-        //fout<<"h= "<<h<<" J= "<<J;	
-        //fout <<" Energy= "<< RunningSumHigh<< endl<<endl;
     }
-    
-    
 
     return 0;
-    
-    fout.close();
 
 }
