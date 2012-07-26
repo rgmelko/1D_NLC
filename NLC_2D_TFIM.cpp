@@ -20,6 +20,7 @@ using namespace std;
 #include "CPU/Lanczos_07.h"
 #include "CPU/GenHam.h"
 #include "CPU/simparam.h"
+#include "CPU/magnetization.h"
 #include "graphs.h"
 
 int main(int argc, char** argv){
@@ -41,6 +42,7 @@ int main(int argc, char** argv){
     }
 
     double energy;
+    double chi;
 
     PARAMS prm;  //Read parameters from param.dat  : see simparam.h
     double J;
@@ -53,7 +55,8 @@ int main(int argc, char** argv){
 
     vector< graph > fileGraphs; //graph objects
     
-    vector<double> WeightHigh;
+    vector<double> EnergyWeightHigh;
+    vector<double> MagnetizationWeightHigh;
     
     ReadGraphsFromFile(fileGraphs, InputFile);
 
@@ -63,44 +66,49 @@ int main(int argc, char** argv){
     
     J=1;
     
-    for(int hh=1; hh<10; hh++){
+    for(int hh=1; hh<5; hh++){
       h = hh;
       
-      WeightHigh.push_back(-h); //Weight for site zero
-      double RunningSumHigh = WeightHigh[0];      
+      EnergyWeightHigh.push_back(-h); //Weight for site zero
+      MagnetizationWeightHigh.push_back(1.);
+      double EnergyRunningSumHigh = EnergyWeightHigh[0];      
+      double MagnetizationRunningSumHigh = MagnetizationWeightHigh[0];      
       
       for (unsigned int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
 	
 	
 	//---High-Field---
-	GENHAM HV(fileGraphs.at(i).NumberSites,J,h,fileGraphs.at(i).AdjacencyList,fileGraphs.at(i).LowField); 
+	    GENHAM HV(fileGraphs.at(i).NumberSites, J, h, fileGraphs.at(i).AdjacencyList, fileGraphs.at(i).LowField); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-        energy = lancz.Diag(HV, 1, 1, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
-        WeightHigh.push_back(energy);
-        for (unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++)
-	  WeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * WeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+        energy = lancz.Diag(HV, 1, 2, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+        chi = Magnetization(eVec, fileGraphs.at(i).NumberSites);
+        
+        EnergyWeightHigh.push_back(energy);
+        MagnetizationWeightHigh.push_back(chi);
 
-        cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
-        cout<<" energy "<<setprecision(12)<<energy<<endl;
+        for (unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++)
+        {
+	        EnergyWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * EnergyWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+	        MagnetizationWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * MagnetizationWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+        }
 	//        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
-	    RunningSumHigh += fileGraphs[ i ].LatticeConstant * WeightHigh.back();
-        cout <<"RunningSumHigh = "<< RunningSumHigh;
-        cout<<endl;
-	
+	    EnergyRunningSumHigh += fileGraphs[ i ].LatticeConstant * EnergyWeightHigh.back();
+	    MagnetizationRunningSumHigh += fileGraphs[ i ].LatticeConstant * MagnetizationWeightHigh.back();
+	    cout<<"Energy Running Sum: "<<EnergyRunningSumHigh<<endl;
+        cout<<"Magnetization Running Sum: "<<MagnetizationRunningSumHigh<<endl;
       }
       
       fout<<"h= "<<h<<" J= "<<J;	
-      fout <<" Energy= "<< RunningSumHigh<< endl<<endl;
+      fout <<" Energy= "<< EnergyRunningSumHigh<<" Magnetization= "<<MagnetizationRunningSumHigh<<endl;
       
-      WeightHigh.clear();
-      RunningSumHigh=0;
+      EnergyWeightHigh.clear();
+      MagnetizationWeightHigh.clear();
+      EnergyRunningSumHigh=0;
+      MagnetizationRunningSumHigh=0;
     }
     
-    
+    fout.close();    
     return 0;
-    
-    fout.close();
-
 }
