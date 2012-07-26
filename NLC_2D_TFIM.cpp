@@ -69,7 +69,7 @@ int main(int argc, char** argv){
       WeightHigh.push_back(-h); //Weight for site zero
       double RunningSumHigh = WeightHigh[0];      
       
-      for (int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
+      for (unsigned int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
 	
 	
 	//---High-Field---
@@ -79,7 +79,7 @@ int main(int argc, char** argv){
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
         energy = lancz.Diag(HV, 1, 1, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
         WeightHigh.push_back(energy);
-        for (int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++)
+        for (unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++)
 	  WeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * WeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
 
         cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";

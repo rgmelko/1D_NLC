@@ -22,7 +22,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
 {
 
     Psi.resize(Dim);
-    int ii, jj;
+    int ii;
     int iter, MAXiter, EViter;
     int min;
     int Lexit;
@@ -194,7 +194,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
         }
         e[iter] = 0;
         //calculate eigenvector
-        for ( ii = 0; ii < Hmatrix.size(); ii++) Hmatrix[ii].assign(LIT, 0.l);
+        for ( unsigned int kk = 0; kk < Hmatrix.size(); kk++) Hmatrix[kk].assign(LIT, 0.l);
         for ( ii = 0; ii <= iter; ii++) Hmatrix[ii][ii] = 1.0; //identity matrix
         nn = iter+1;
         rtn = tqli2(d,e,nn,Hmatrix,1);

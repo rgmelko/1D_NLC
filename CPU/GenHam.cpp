@@ -5,19 +5,19 @@ GENHAM::GENHAM(const int Ns, const long double J_, const long double h_, vector 
   : JJ(J_), hh(h_), Bond(BBond_)
 //create bases and determine dim of full Hilbert space
 {
-  int Dim;
+  unsigned int Dim;
   Nsite = Ns;
   LowField = Field;
 
   Dim = 2;  //  S=1/2 models : two states
-  for (int ch=1; ch<Nsite; ch++) Dim *=2;
+  for (int ch = 1; ch < Nsite; ch++) Dim *= 2;
 
   BasPos.resize(Dim,-1); //initialization 
 
   Vdim=0;
   unsigned long temp;    //create basis (16 site cluster)
 
-  for (unsigned long i1=0; i1<Dim; i1++) 
+  for (unsigned int i1 = 0; i1 < Dim; i1++) 
   {
       temp = 0;
       for (int sp =0; sp<Nsite; sp++)
@@ -35,14 +35,13 @@ GENHAM::GENHAM(const int Ns, const long double J_, const long double h_, vector 
 //----------------------------------------------------------
 void GENHAM::printg()
 {
-  int i,j;
   vector<int> tempP;
   vector<long double> tempV;
 
-  for (i=0; i<PosHam.size(); i++){
+  for (unsigned int i = 0; i < PosHam.size(); i++){
     //cout<<PosHam[i][0]<<" * ";
     cout<<i+1<<" * ";
-    for (j=0; j<=PosHam[i][0]; j++){
+    for (int j = 0; j <= PosHam[i][0]; j++){
       cout<<"("<<PosHam[i][j]+1<<","<<ValHam[i][j]<<") ";
     }
     cout<<endl;
@@ -54,15 +53,14 @@ void GENHAM::printg()
 //----------------------------------------------------------
 void GENHAM::SparseHamJQ()
 {
-  int ii, jj;
 
   vector<long> tempBas;
   vector<long double> tempH;
-  unsigned long tempi, tempj, tempod;
-  int si, sj,sk,sl;
+  unsigned long tempi, tempod;
+  int si;
   double tempD;
 
-  for (ii=0; ii<Basis.size(); ii++){
+  for (unsigned int ii=0; ii<Basis.size(); ii++){
     tempH.clear(); 
     tempBas.clear();
 
@@ -100,7 +98,7 @@ void GENHAM::SparseHamJQ()
     bool noswap = false;
     while (noswap == false){
       noswap = true; 
-      for (int i2=1; i2<tempBas.size()-1; i2++){ //ignore 0 element
+      for (unsigned int i2=1; i2<tempBas.size()-1; i2++){ //ignore 0 element
         if (tempBas.at(i2) > tempBas.at(i2+1) ) {
           stemp = tempBas.at(i2);
           tempBas.at(i2) = tempBas.at(i2+1);
@@ -127,7 +125,7 @@ double GENHAM::HdiagPart(const long bra, int Sites){
   int T0,T1;  //site
   double valH = 0;
 
-  for (int Ti=0; Ti<Bond.size(); Ti++){
+  for (unsigned int Ti = 0; Ti < Bond.size(); Ti++){
     //***HEISENBERG PART
 
     T0 = Bond[Ti].first; //T0 = Bond(Ti,0); //lower left spin
@@ -140,8 +138,8 @@ double GENHAM::HdiagPart(const long bra, int Sites){
 
   }//T0
 
-  T0=0;
-  T1=Sites-1;
+  T0 = 0;
+  T1 = Sites-1;
   S0b = (bra>>T0)&1;
   S1b = (bra>>T1)&1;
   if(LowField){ valH += -JJ*2*((S0b-0.5) + (S1b-0.5)); }
