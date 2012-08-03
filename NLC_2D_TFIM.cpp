@@ -56,7 +56,7 @@ int main(int argc, char** argv){
     vector< graph > fileGraphs; //graph objects
     
     vector<double> EnergyWeightHigh;
-    vector<double> MagnetizationWeightHigh;
+    vector<double> MagnetWeightHigh;
     
     ReadGraphsFromFile(fileGraphs, InputFile);
 
@@ -64,15 +64,15 @@ int main(int argc, char** argv){
     fout.precision(10);
     cout.precision(10);
     
-    J=1;
+    J=1.;
     
-    for(int hh=1; hh<5; hh++){
+    for(double hh = 4; hh < 5; hh += 2.){
       h = hh;
       
       EnergyWeightHigh.push_back(-h); //Weight for site zero
-      MagnetizationWeightHigh.push_back(1.);
+      MagnetWeightHigh.push_back(1.);
       double EnergyRunningSumHigh = EnergyWeightHigh[0];      
-      double MagnetizationRunningSumHigh = MagnetizationWeightHigh[0];      
+      double MagnetRunningSumHigh = MagnetWeightHigh[0];      
       
       for (unsigned int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
 	
@@ -84,29 +84,36 @@ int main(int argc, char** argv){
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
         energy = lancz.Diag(HV, 1, 2, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
         chi = Magnetization(eVec, fileGraphs.at(i).NumberSites);
-        
+        eVec.clear();
         EnergyWeightHigh.push_back(energy);
-        MagnetizationWeightHigh.push_back(chi);
+        MagnetWeightHigh.push_back(chi);
 
         for (unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++)
         {
 	        EnergyWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * EnergyWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
-	        MagnetizationWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * MagnetizationWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+	        MagnetWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * MagnetWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
         }
 	//        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
-	    EnergyRunningSumHigh += fileGraphs[ i ].LatticeConstant * EnergyWeightHigh.back();
-	    MagnetizationRunningSumHigh += fileGraphs[ i ].LatticeConstant * MagnetizationWeightHigh.back();
-	    cout<<"Energy Running Sum: "<<EnergyRunningSumHigh<<endl;
-        cout<<"Magnetization Running Sum: "<<MagnetizationRunningSumHigh<<endl;
+        EnergyRunningSumHigh += fileGraphs[ i ].LatticeConstant * EnergyWeightHigh.back();
+	    //cout<<"This cluster's order: "<<fileGraphs[i].NumberSites<<" Lattice Constant: "<<fileGraphs[i].LatticeConstant<<endl;
+        //cout<<"Magnetization for this cluster: "<<chi<<endl;
+	    //cout<<"Energy for this cluster: "<<energy<<endl;
+        //cout<<"Magnetization Weight High: "<<MagnetWeightHigh.back()<<endl;
+        if (fabs(fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back()) > 1.0)
+        {
+            fout<<"In the "<<fileGraphs.at(i).Identifier<<"th graph, magnetization weight of "<<fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back()<<endl;
+        }
+        MagnetRunningSumHigh += fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back();
+	    cout<<"h = "<<hh<<" J = "<<J<<" Energy Running Sum: "<<EnergyRunningSumHigh<<" Magnet Running Sum: "<<MagnetRunningSumHigh<<endl;
       }
       
       fout<<"h= "<<h<<" J= "<<J;	
-      fout <<" Energy= "<< EnergyRunningSumHigh<<" Magnetization= "<<MagnetizationRunningSumHigh<<endl;
+      fout <<" Energy= "<< EnergyRunningSumHigh<<" Magnet= "<<MagnetRunningSumHigh<<endl;
       
       EnergyWeightHigh.clear();
-      MagnetizationWeightHigh.clear();
+      MagnetWeightHigh.clear();
       EnergyRunningSumHigh=0;
-      MagnetizationRunningSumHigh=0;
+      MagnetRunningSumHigh=0;
     }
     
     fout.close();    

@@ -56,17 +56,19 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
     iter = 0;
 
     for (EViter = 0; EViter < Evects2; EViter++) {//0=get E0 converge, 1=get eigenvec
-    
         iter = 0;
     //create a "random" starting vector
-        V0.assign(Dim, 0.);
+        V0.assign(Dim, 0.0);
+        //V0[ 0 ] = 1.0;
         for (unsigned int vi=0; vi < V0.size(); vi++) 
         { 
-            if (vi%4 == 0) V0[vi] = 1.0;
-            else if (vi%5 == 0) V0[vi] = -2.0;
-            else if (vi%7 == 0) V0[vi] = 3.0;
-            else if (vi%9 == 0) V0[vi] = -4.0;
+            //V0[vi] = 1.0;
+            if (vi == V0.size() - 1) V0[vi] = 1.0;
+            //else if (vi%5 == 0) V0[vi] = -2.0;
+            //else if (vi%7 == 0) V0[vi] = 3.0;
+            //else if (vi%9 == 0) V0[vi] = -4.0;
         }
+        //if(V0.size()>4){V0[V0.size()-1]=1.0;}
         Normalize(V0);  
    
         if (EViter == 1) for( ii = 0; ii < Dim; ii++) Psi[ii] = V0[ii] * (Hmatrix[0][min]);
@@ -195,7 +197,7 @@ double LANCZOS::Diag(const GENHAM& SparseH, const int Neigen, const int Evects2,
         e[iter] = 0;
         //calculate eigenvector
         for ( unsigned int kk = 0; kk < Hmatrix.size(); kk++) Hmatrix[kk].assign(LIT, 0.l);
-        for ( ii = 0; ii <= iter; ii++) Hmatrix[ii][ii] = 1.0; //identity matrix
+        for ( ii = 0; ii <= iter; ii++) Hmatrix[ii][ii] = 1.l; //identity matrix
         nn = iter+1;
         rtn = tqli2(d,e,nn,Hmatrix,1);
         min = 0;

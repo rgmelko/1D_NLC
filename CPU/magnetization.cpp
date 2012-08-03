@@ -1,6 +1,6 @@
 #include "magnetization.h"
 
-double Magnetization( vector< long double > & Eigenvector, int NumberSpins)
+double Magnetization( const vector< long double > & Eigenvector, const int NumberSpins)
 {
     double chi = 0;
     double norm = 0;
@@ -11,11 +11,13 @@ double Magnetization( vector< long double > & Eigenvector, int NumberSpins)
         {
             UpSpins += ( CurrentKet >> CurrentSpin) & 1;
         }
-
-        chi += abs( (UpSpins * 2) - NumberSpins) * Eigenvector[ CurrentKet ] * Eigenvector[ CurrentKet ];
+        double temp = ((2*UpSpins) - NumberSpins )* Eigenvector[ CurrentKet ] * Eigenvector[ CurrentKet ] * ((2*UpSpins) - NumberSpins );
+        chi += temp;
         norm += Eigenvector[ CurrentKet ] * Eigenvector[ CurrentKet ];
+        //cout<<"Current Ket: "<<CurrentKet<<" value in GS: "<<Eigenvector[ CurrentKet ]<<endl;
     }
-    chi /= (double)NumberSpins;
+    //chi = chi/(double)NumberSpins/norm;
     chi /= norm;
-    return chi;
+    chi /= NumberSpins;
+    return abs(chi);
 }
