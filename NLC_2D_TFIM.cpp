@@ -21,7 +21,7 @@ using namespace std;
 #include "CPU/GenHam.h"
 #include "CPU/simparam.h"
 #include "CPU/magnetization.h"
-#include "graphs.h"
+#include "../Graphs/graphs.h"
 
 int main(int argc, char** argv){
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv){
     J=prm.JJ_;
     h=prm.hh_;
 
-    vector< graph > fileGraphs; //graph objects
+    vector< Graph > fileGraphs; //graph objects
     
     vector<double> EnergyWeightHigh;
     vector<double> MagnetWeightHigh;
@@ -66,7 +66,7 @@ int main(int argc, char** argv){
     
     J=1.;
     
-    for(double hh = 4; hh < 5; hh += 2.){
+    for(double hh = 1; hh < 3; hh += 2.){
       h = hh;
       
       EnergyWeightHigh.push_back(-h); //Weight for site zero
@@ -78,12 +78,12 @@ int main(int argc, char** argv){
 	
 	
 	//---High-Field---
-	    GENHAM HV(fileGraphs.at(i).NumberSites, J, h, fileGraphs.at(i).AdjacencyList, fileGraphs.at(i).LowField); 
+	    GENHAM HV(fileGraphs.at(i).Order, J, h, fileGraphs.at(i).AdjacencyList, fileGraphs.at(i).LowField); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
         energy = lancz.Diag(HV, 1, 2, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
-        chi = Magnetization(eVec, fileGraphs.at(i).NumberSites);
+        chi = Magnetization(eVec, fileGraphs.at(i).Order);
         eVec.clear();
         EnergyWeightHigh.push_back(energy);
         MagnetWeightHigh.push_back(chi);
@@ -95,7 +95,7 @@ int main(int argc, char** argv){
         }
 	//        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
         EnergyRunningSumHigh += fileGraphs[ i ].LatticeConstant * EnergyWeightHigh.back();
-	    //cout<<"This cluster's order: "<<fileGraphs[i].NumberSites<<" Lattice Constant: "<<fileGraphs[i].LatticeConstant<<endl;
+	    //cout<<"This cluster's order: "<<fileGraphs[i].Order<<" Lattice Constant: "<<fileGraphs[i].LatticeConstant<<endl;
         //cout<<"Magnetization for this cluster: "<<chi<<endl;
 	    //cout<<"Energy for this cluster: "<<energy<<endl;
         //cout<<"Magnetization Weight High: "<<MagnetWeightHigh.back()<<endl;

@@ -15,13 +15,13 @@ using namespace std;
 #include "CPU/GenHam.h"
 #include "CPU/simparam.h"
 #include "GPU/lanczos.h"
-#include "graphs.h"
+#include "../Graphs/graphs.h"
 
 #define HOW_MANY_16 30 
 #define HOW_MANY_18 2 
 
-bool order_16( graph g ){ return g.NumberSites == 16; };
-bool order_18( graph g ){ return g.NumberSites == 18; };
+bool order_16( Graph g ){ return g.Order == 16; };
+bool order_18( Graph g ){ return g.Order == 18; };
 
 int main(int argc, char **argv) 
 {
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     //bool TypeFlag = false;
     /*fin >> TypeFlag;
     fin.close();*/
-    vector< graph > fileGraphs;
+    vector< Graph > fileGraphs;
     vector< double > WeightHigh;
 
     ReadGraphsFromFile( fileGraphs, InputFile);
@@ -102,29 +102,29 @@ int main(int argc, char **argv)
         int remaining = FirstCount;
 
         unsigned int i = 1;
-        while ( i < fileGraphs.size() )//&& fileGraphs.at(i).NumberSites < 14) //skip the zeroth graph
+        while ( i < fileGraphs.size() )//&& fileGraphs.at(i).Order < 14) //skip the zeroth graph
         {
             if ( gpuFlag && 
                  GPUprocessed < GPUmax &&
                  remaining >= GPUmax &&
-                 (fileGraphs[ i ].NumberSites == 16 || fileGraphs[ i ].NumberSites == 18) )
+                 (fileGraphs[ i ].Order == 16 || fileGraphs[ i ].Order == 18) )
             {
                 GPUprocessed++;
                 remaining--;
                 GPUqueue[GPUprocessed] = i; //store the locations of the graphs we're going to process in parallel
 
                 //energy = 0;
-                Bonds[ GPUprocessed ] = ( int* ) malloc( sizeof( int ) * 3 * fileGraphs[ i ].NumberSites );
-                for ( unsigned int k = 0; k < fileGraphs[ i ].NumberSites; k++ )
+                Bonds[ GPUprocessed ] = ( int* ) malloc( sizeof( int ) * 3 * fileGraphs[ i ].Order );
+                for ( unsigned int k = 0; k < fileGraphs[ i ].Order; k++ )
                 {
                     Bonds[ GPUprocessed ][ k ] = k;
-                    Bonds[ GPUprocessed ][ k + fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ k ].second;
-                    Bonds[ GPUprocessed ][ k + 2 * fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ 2 * k + 1 ].second;
+                    Bonds[ GPUprocessed ][ k + fileGraphs[ i ].Order ] = fileGraphs[ i ].AdjacencyList[ k ].second;
+                    Bonds[ GPUprocessed ][ k + 2 * fileGraphs[ i ].Order ] = fileGraphs[ i ].AdjacencyList[ 2 * k + 1 ].second;
                 }
                     
-                data[ GPUprocessed ].nsite = fileGraphs[ i ].NumberSites;
+                data[ GPUprocessed ].nsite = fileGraphs[ i ].Order;
                 data[ GPUprocessed ].Sz = 0;
-                data[ GPUprocessed ].dimension = (fileGraphs[i].AdjacencyList.size() <= fileGraphs[i].NumberSites) ? 1 : 2;
+                data[ GPUprocessed ].dimension = (fileGraphs[i].AdjacencyList.size() <= fileGraphs[i].Order) ? 1 : 2;
                 data[ GPUprocessed ].J1 = 4*J;
                 data[ GPUprocessed ].J2 = h;
                 data[ GPUprocessed ].modelType = 2;
@@ -173,7 +173,7 @@ int main(int argc, char **argv)
             
             else
             {
-                GENHAM HV( fileGraphs[ i ].NumberSites, J, h, fileGraphs[ i ].AdjacencyList, fileGraphs[ i ].LowField );
+                GENHAM HV( fileGraphs[ i ].Order, J, h, fileGraphs[ i ].AdjacencyList, fileGraphs[ i ].LowField );
 
                 LANCZOS lancz( HV.Vdim );  //dimension of reduced Hilbert space (Sz sector)
                 HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
