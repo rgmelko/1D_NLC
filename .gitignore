@@ -1,4 +1,5 @@
 GPU/sort/*
-*.out
+*.out*
 *.o
 *.dat
+*.log

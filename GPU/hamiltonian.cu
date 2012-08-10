@@ -123,40 +123,40 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
         case 0: //2D spin 1/2 Heisenberg
         case 1: //2D spin 1/2 XY
             numElem[i] = 0;
-            stride[i] = 4*data[i].nsite + 1;
+            stride[i] = 4 * data[i].nsite + 1;
 
             d_H[i].fullDim = 2;
-            for (int ch=1; ch<data[i].nsite; ch++) d_H[i].fullDim *= 2;
+            for (int ch = 1; ch < data[i].nsite; ch++) d_H[i].fullDim *= 2;
             break;
         case 2: //1D Transverse Field Ising Model
             numElem[i] = 0;
-            stride[i] = 2*data[i].nsite + 1;
+            stride[i]  = 2 * data[i].nsite + 1;
 
             d_H[i].fullDim = 2;
-            for (int ch=1; ch<data[i].nsite; ch++) d_H[i].fullDim *= 2;
+            for (int ch = 1; ch < data[i].nsite; ch++) d_H[i].fullDim *= 2;
             break;
         }
 
-        basisPosition[i] = (int*)malloc(d_H[i].fullDim*sizeof(int));
-        basis[i] = (int*)malloc(d_H[i].fullDim*sizeof(int));
+        basisPosition[i] = (int*)malloc(d_H[i].fullDim * sizeof(int));
+        basis[i] = (int*)malloc(d_H[i].fullDim * sizeof(int));
 
         d_H[i].sectorDim = GetBasis(d_H[i].fullDim, data[i], basisPosition[i], basis[i]);
         
-        status[i] = cudaMalloc((void**)&d_basisPosition[i], d_H[i].fullDim*sizeof(int));
+        status[i] = cudaMalloc((void**) &d_basisPosition[i], d_H[i].fullDim * sizeof(int));
         
         if (status[i] != cudaSuccess)
         {
             cout<<"Error allocating "<<i<<"th d_basisPosition array: "<<cudaGetErrorString(status[i])<<endl;
         }
         
-        status[i] = cudaMalloc((void**)&d_basis[i], d_H[i].sectorDim*sizeof(int));
+        status[i] = cudaMalloc((void**) &d_basis[i], d_H[i].sectorDim * sizeof(int));
 
         if (status[i] != cudaSuccess)
         {
             cout<<"Error allocating "<<i<<"th d_basis array: "<<cudaGetErrorString(status[i])<<endl;
         }
 
-        status[i] = cudaStreamCreate(&stream[i]);
+        status[i] = cudaStreamCreate( &stream[i] );
 
         if (status[i] != cudaSuccess)
         {
@@ -275,12 +275,12 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
             offset[i] = (1<<16 - 1);
         }
 
-        status[i] = cudaStreamSynchronize(stream[i]);
+        /*status[i] = cudaStreamSynchronize(stream[i]);
 
         if (status[i] != cudaSuccess)
         {
             cout<<"Error synchronizing "<<i<<"th stream: "<<cudaGetErrorString(status[i])<<endl;
-        }
+        }*/
 
         //------Generate diagonal elements of the Hamiltonian--------
 
@@ -307,19 +307,19 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
             cout<<"Error launching FillDiagonals: "<<cudaGetErrorString(status[i])<<endl;
         }
     }
-    status[0] = cudaThreadSynchronize();
+    /*status[0] = cudaThreadSynchronize();
     if (status[0] != cudaSuccess)
     {
         cout<<"Error synchronizing after FillDiagonals: "<<cudaGetErrorString(status[0])<<endl;
-    }
+    }*/
     for(int i = 0; i < howMany; i++)
     {
-        status[i] = cudaStreamSynchronize(stream[i]);
+        //status[i] = cudaStreamSynchronize(stream[i]);
 
-        if (status[i] != cudaSuccess)
+        /*if (status[i] != cudaSuccess)
         {
             cout<<"Error synchronizing "<<i<<"th stream: "<<cudaGetErrorString(status[i])<<endl;
-        }
+        }*/
 
         status[i] = cudaPeekAtLastError();
     
@@ -416,13 +416,14 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
 
     }
 
-    status[0] = cudaThreadSynchronize();
+    /*status[0] = cudaThreadSynchronize();
     if( status[0] != cudaSuccess)
     {
         cout<<"Error synchronizing after filling Hamiltonians: "<<cudaGetErrorString(status[0])<<endl;
-    }
+    }*/
     for(int i = 0; i < howMany; i++)
     {
+        //cudaStreamSynchronize(stream[i]);
         thrust::device_ptr<int> red_ptr(d_H[i].set);
         numElem[i] = thrust::reduce(red_ptr, red_ptr + rawSize[i]);
     }
@@ -459,8 +460,6 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
     //----------------Sorting Hamiltonian--------------------------//
 
     float** valsBuffer = (float**)malloc(howMany*sizeof(float*));
-    int sortNumber[howMany];
-
 
     //-------Row-sort Hamiltonian to eliminate zero-valued elements---------
 
@@ -635,7 +634,7 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
         cudaFree(valsBuffer[i]);
         free(Bond[i]);
     }
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
 
     //----Free all the array storage to avoid memory leaks---------
 

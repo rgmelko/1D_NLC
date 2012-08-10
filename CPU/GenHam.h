@@ -18,6 +18,7 @@ public:
   
     vector<long> Basis;
     vector<long> BasPos;
+    vector<int> ConnectCount;
   
     vector< vector< double > > Ham;
   

@@ -25,8 +25,7 @@ TODO
 - Change Lanczos convergence to depend on groundstate
 - Extend the Hamiltonian code to other models (Heisenberg, J1-J2, XY, etc)
 - Allow the user to specify which GPU(s) they would like to use when they launch the program
-- Allow the user to pass the filename to read the graphs from when they launch the program
-- Allow the user to pass the filename to dump the results to when they launch the program
+- Let the user compile with MPI 
 
 ------------------------------------------------------------
 The original Lanczos was branched from this SVN repository:

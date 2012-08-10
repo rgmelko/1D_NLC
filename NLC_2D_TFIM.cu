@@ -9,12 +9,20 @@ using namespace std;
 #include <fstream>
 #include <limits.h>
 #include <cstdio>
+#include <algorithm>
 #include <time.h>
 #include "CPU/Lanczos_07.h"
 #include "CPU/GenHam.h"
 #include "CPU/simparam.h"
-#include "GPU/lanczos.h"
-#include "graphs.h"
+#include "CPU/magnetization.h"
+#include "GPU/GPUmagnetization.h"
+#include "../Graphs/graphs.h"
+
+#define HOW_MANY_16 30 
+#define HOW_MANY_18 2 
+
+bool order_16( Graph g ){ return g.Order == 16; };
+bool order_18( Graph g ){ return g.Order == 18; };
 
 int main(int argc, char **argv) 
 {
@@ -41,6 +49,7 @@ int main(int argc, char **argv)
     }
 
     double energy;
+    double magnet;
 
     PARAMS prm;  //Read parameters from param.dat  : see simparam.h
     double J;
@@ -55,8 +64,9 @@ int main(int argc, char **argv)
     //bool TypeFlag = false;
     /*fin >> TypeFlag;
     fin.close();*/
-    vector< graph > fileGraphs;
-    vector< double > WeightHigh;
+    vector< Graph > fileGraphs;
+    vector< double > EnergyWeightHigh;
+    vector< double > MagnetWeightHigh;
 
     ReadGraphsFromFile( fileGraphs, InputFile);
 
@@ -66,46 +76,100 @@ int main(int argc, char **argv)
     fout.precision( 10 );
     cout.precision( 10 );
 
+    int FirstCount; 
+    FirstCount = (int) std::count_if(fileGraphs.begin(), fileGraphs.end(), order_16);
+    int SecondCount; 
+    SecondCount = (int) std::count_if(fileGraphs.begin(), fileGraphs.end(), order_18);
+
     J = 1;
     
-    for( int hh = 1; hh < 2; hh++ ) 
+    for( double hh = 4; hh <= 5; hh += 1 ) 
     {
         h = hh;
 
-        WeightHigh.push_back( -h ); //Weight for site zero
-        double RunningSumHigh = WeightHigh[ 0 ];
+        EnergyWeightHigh.push_back( -h ); //Weight for site zero
+        MagnetWeightHigh.push_back( 1. ); //Weight for site zero
+        double EnergyRunningSumHigh = EnergyWeightHigh[ 0 ];
+        double MagnetRunningSumHigh = MagnetWeightHigh[ 0 ];
 
-        d_hamiltonian* HamilLancz = (d_hamiltonian*) malloc( sizeof( d_hamiltonian ) );
-        parameters* data = (parameters*) malloc( sizeof( parameters ) );
-        double** groundstates = (double**) malloc( sizeof( double* ) );
-        double** eigenvalues = (double**) malloc( sizeof( double* ) );
-        eigenvalues[ 0 ] = (double*) malloc( sizeof( double ) );
-        int* NumElem = (int*) malloc( sizeof( int ) );
-        int** Bonds = (int**) malloc( sizeof( int* ) );
-        
+        d_hamiltonian* HamilLancz = (d_hamiltonian*) malloc(HOW_MANY_16 * sizeof( d_hamiltonian ) );
+        parameters* data          = (parameters*) malloc( HOW_MANY_16 * sizeof( parameters ) );
+        double** groundstates     = (double**) malloc( HOW_MANY_16 * sizeof( double* ) );
+        double** eigenvalues      = (double**) malloc( HOW_MANY_16 * sizeof( double* ) );
+        double* magnetarray       = (double*) malloc( HOW_MANY_16 * sizeof(double* ) );
+        int* NumElem = (int*) malloc( HOW_MANY_16 * sizeof( int ) );
+        int** Bonds  = (int**) malloc( HOW_MANY_16 * sizeof( int* ) );
+        unsigned int GPUqueue[HOW_MANY_16];
+
+        int GPUprocessed = 0;
+        int GPUmax = HOW_MANY_16;
+        int remaining = FirstCount;
+
         unsigned int i = 1;
-        while ( i < fileGraphs.size() )//&& fileGraphs.at(i).NumberSites < 14) //skip the zeroth graph
+        while ( i < fileGraphs.size() )//&& fileGraphs.at(i).Order < 14) //skip the zeroth graph
         {
-            if ( gpuFlag && fileGraphs[ i ].NumberSites == 16 || fileGraphs[ i ].NumberSites == 18 )
+            if ( gpuFlag && 
+                 GPUprocessed < GPUmax &&
+                 remaining >= GPUmax &&
+                 (fileGraphs[ i ].Order == 16 || fileGraphs[ i ].Order == 18) )
             {
-                Bonds[ 0 ] = ( int* ) malloc( sizeof( int ) * 3 * fileGraphs[ i ].NumberSites );
-                for ( unsigned int k = 0; k < fileGraphs[ i ].NumberSites; k++ )
+                GPUprocessed++;
+                remaining--;
+                GPUqueue[GPUprocessed] = i; //store the locations of the graphs we're going to process in parallel
+
+                //energy = 0;
+                Bonds[ GPUprocessed ] = ( int* ) malloc( sizeof( int ) * 3 * fileGraphs[ i ].Order );
+                for ( unsigned int k = 0; k < fileGraphs[ i ].Order; k++ )
                 {
-                    Bonds[ 0 ][ k ] = k;
-                    Bonds[ 0 ][ k + fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ k ].second;
-                    Bonds[ 0 ][ k + 2 * fileGraphs[ i ].NumberSites ] = fileGraphs[ i ].AdjacencyList[ 2 * k + 1 ].second;
+                    Bonds[ GPUprocessed ][ k ] = k;
+                    Bonds[ GPUprocessed ][ k + fileGraphs[ i ].Order ] = fileGraphs[ i ].AdjacencyList[ k ].second;
+                    Bonds[ GPUprocessed ][ k + 2 * fileGraphs[ i ].Order ] = fileGraphs[ i ].AdjacencyList[ 2 * k + 1 ].second;
                 }
                     
-                data[ 0 ].nsite = fileGraphs[ i ].NumberSites;
-                data[ 0 ].Sz = 0;
-                data[ 0 ].dimension = (fileGraphs[i].AdjacencyList.size() <= fileGraphs[i].NumberSites) ? 1 : 2;
-                data[ 0 ].J1 = 4*J;
-                data[ 0 ].J2 = h;
-                data[ 0 ].modelType = 2;
-                ConstructSparseMatrix( 1, Bonds, HamilLancz, data, NumElem, 1);
-                lanczos( 1, NumElem, HamilLancz, groundstates, eigenvalues, 200, 1, 1e-12);
-                
-                energy = eigenvalues[ 0 ][ 0 ];
+                data[ GPUprocessed ].nsite = fileGraphs[ i ].Order;
+                data[ GPUprocessed ].Sz = 0;
+                data[ GPUprocessed ].dimension = (fileGraphs[i].AdjacencyList.size() <= fileGraphs[i].Order) ? 1 : 2;
+                data[ GPUprocessed ].J1 = 4*J;
+                data[ GPUprocessed ].J2 = h;
+                data[ GPUprocessed ].modelType = 2;
+                eigenvalues[ GPUprocessed ] = (double*) malloc( sizeof( double ) );
+                i++;
+                /*cudaEvent_t start, stop;
+                cudaEventCreate(&start);
+                cudaEventCreate(&stop);
+                float time;
+                cudaEventRecord(start, 0);
+                */
+            }
+            
+            if( GPUprocessed == GPUmax - 1 || remaining == 0)
+            {
+                ConstructSparseMatrix( GPUprocessed, Bonds, HamilLancz, data, NumElem, 0);
+                lanczos( GPUprocessed, NumElem, HamilLancz, groundstates, eigenvalues, 200, 1, 1e-12);
+                GPUmagnetization( GPUprocessed, HamilLancz, data, groundstates, magnetarray);
+                /*cudaEventRecord(stop, 0);
+                cudaEventSynchronize(stop);
+                cudaEventElapsedTime(&time, start, stop);
+                cout<<"Time to do GPU work: "<<time<<endl;
+                cudaEventDestroy(start);
+                cudaEventDestroy(stop);
+                */
+                for( int j = 0; j < GPUprocessed; j++ )
+                {
+                    energy = eigenvalues[ j ][ 0 ];
+                    magnet = magnetarray[ j ];
+                    EnergyWeightHigh.push_back( energy );
+                    MagnetWeightHigh.push_back( magnet );
+                    
+                    for ( unsigned int k = 0; k < fileGraphs[ GPUqueue[j] ].SubgraphList.size(); k++ )
+                    {
+                        EnergyWeightHigh.back() -= fileGraphs[ GPUqueue[j] ].SubgraphList[ k ].second * EnergyWeightHigh[ fileGraphs[ GPUqueue[i] ].SubgraphList[ k ].first ];
+                        MagnetWeightHigh.back() -= fileGraphs[ GPUqueue[j] ].SubgraphList[ k ].second * MagnetWeightHigh[ fileGraphs[ GPUqueue[i] ].SubgraphList[ k ].first ];
+                    }
+                    EnergyRunningSumHigh += fileGraphs[ GPUqueue[j] ].LatticeConstant * EnergyWeightHigh.back();
+                    MagnetRunningSumHigh += fileGraphs[ GPUqueue[j] ].LatticeConstant * MagnetWeightHigh.back();
+                }
+                GPUprocessed = 0;
                 //free(Bonds[0]);
                 //cudaFree(HamilLancz[0].rows);
                 //cudaFree(HamilLancz[0].cols);
@@ -113,115 +177,40 @@ int main(int argc, char **argv)
                 //cudaFree(eigenvalues[0]);
                 //cudaFree(groundstates[0]);
             }
+            if ( remaining == 0 )
+            {
+                remaining = SecondCount;
+                GPUmax = HOW_MANY_18;
+            }
             
             else
             {
-                GENHAM HV( fileGraphs[ i ].NumberSites, J, h, fileGraphs[ i ].AdjacencyList, fileGraphs[ i ].LowField );
+                GENHAM HV( fileGraphs[ i ].Order, J, h, fileGraphs[ i ].AdjacencyList, fileGraphs[ i ].LowField );
 
                 LANCZOS lancz( HV.Vdim );  //dimension of reduced Hilbert space (Sz sector)
                 HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
             
                 energy = lancz.Diag( HV, 1, 1, eVec ); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
-            }
-
-            WeightHigh.push_back( energy );
-            for ( unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++ )
-                WeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * WeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
-
-            cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
-            cout<<" energy "<<setprecision(12)<<energy<<endl;
-            //        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
-            RunningSumHigh += fileGraphs[ i ].LatticeConstant * WeightHigh.back();
-            cout<<"RunningSumHigh = "<<RunningSumHigh;
-            cout<<endl;
-            i++;
-        } 
-        /*
-        if( argv[0] == "--gpu" || argv[0] == "-g" )
-        {
-            while ( i < fileGraphs.size() )
-            {
-                i += 30;
-                if (fileGraphs.at(i).NumberSites == 18 )
+                magnet = Magnetization( eVec, fileGraphs[ i ].Order);
+                EnergyWeightHigh.push_back( energy );
+                MagnetWeightHigh.push_back( magnet );
+                for ( unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++ )
                 {
-                    HowMany = 2;
+                    EnergyWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * EnergyWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+                    MagnetWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * MagnetWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
                 }
-                for( int j = 0; j < HowMany; j++)
-                {
-                
-                    Bonds[ j ] = (int*)malloc(sizeof(int)*3*fileGraphs.at(i - j).NumberSites);
-                    for(unsigned int k = 0; k < fileGraphs.at(i - j).NumberSites; k++)
-                    {
-                        Bonds[ j ][ k ] = k;
-                        Bonds[ j ][ k + fileGraphs.at(i - j).NumberSites ] = fileGraphs.at(i - j).AdjacencyList.at(2*k).second;
-                        Bonds[ j ][ k + 2*fileGraphs.at(i - j).NumberSites ] = fileGraphs.at(i - j).AdjacencyList.at(2*k + 1).second;
-                    }
-                    
-                    data[ j ].Sz = 0;
-                    data[ j ].dimension = 2;
-                    data[ j ].J1 = J;
-                    data[ j ].J2 = h;
-                    data[ j ].modelType = 2;
-                    eigenvalues[ j ] = (double*)malloc(sizeof(double));
-                }
-                
-                ConstructSparseMatrix(HowMany, Bonds, HamilLancz, data, NumElem, 1);
-                lanczos(HowMany, NumElem, HamilLancz, groundstates, eigenvalues, 200, 1, 1e-12);
-                
-                for( int j = 0; j < HowMany; j++)
-                {
-                    energy = eigenvalues[ HowMany - 1 - j ][0];
-                    WeightHigh.push_back(energy);
-                    for( unsigned int k = 0; k < fileGraphs.at(i - j).SubgraphList.size(); k++)
-                    {
-                        WeightHigh.back() -= fileGraphs.at(i - j).SubgraphList[k].second * WeightHigh[fileGraphs.at(i - j).SubgraphList[k].first];
-
-                        cout<<"h="<<h<<" J="<<J<<" graph #"<<i - j<<"  ";
-                        //cout<<" energy "<<setprecision(12)<<energy<<endl;
-                        //cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
-                        RunningSumHigh += WeightHigh.back();
-                        cout <<"RunningSumHigh = "<< RunningSumHigh;
-                        cout<<endl;
-                    }
-                    free(Bonds[j]);
-                    cudaFree(groundstates[j]);
-                    cudaFree(eigenvalues[j]);
-                    cudaFree(HamilLancz[j].rows);
-                    cudaFree(HamilLancz[j].cols);
-                    cudaFree(HamilLancz[j].vals);
-                }
-            }
-        }    
-
-        else 
-        {
-            while ( i < fileGraphs.size() )
-            {
-        //---High-Field---
-                GENHAM HV(fileGraphs.at(i).NumberSites, J, h, fileGraphs.at(i).AdjacencyList, fileGraphs.at(i).LowField);
-
-                LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
-                HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-                energy = lancz.Diag(HV, 1, prm.valvec_, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
-                WeightHigh.push_back(energy);
-                for (unsigned int j = 0; j<fileGraphs.at(i).SubgraphList.size(); j++)
-                    WeightHigh.back() -= fileGraphs.at(i).SubgraphList[j].second * WeightHigh[fileGraphs.at(i).SubgraphList[j].first];
-
-                cout<<"h="<<h<<" J="<<J<<" graph #"<<i<<"  ";
-                //cout<<" energy "<<setprecision(12)<<energy<<endl;
-                //cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
-                RunningSumHigh += WeightHigh.back();
-                cout <<"RunningSumHigh = "<< RunningSumHigh;
-                cout<<endl;
+                EnergyRunningSumHigh += fileGraphs[ i ].LatticeConstant * EnergyWeightHigh.back();
+                MagnetRunningSumHigh += fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back();
                 i++;
             }
-        }*/
-
+        } 
         fout<<"h= "<<h<<" J= "<<J;
-        fout <<" Energy= "<< RunningSumHigh<< endl<<endl;
+        fout <<" Energy= "<< EnergyRunningSumHigh<<" Magnetization= "<<MagnetRunningSumHigh<<endl;
 
-        WeightHigh.clear();
-        RunningSumHigh=0;
+        EnergyWeightHigh.clear();
+        MagnetWeightHigh.clear();
+        EnergyRunningSumHigh=0;
+        MagnetRunningSumHigh=0;
     
     }
     
