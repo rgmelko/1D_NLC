@@ -14,7 +14,8 @@ using namespace std;
 #include "CPU/Lanczos_07.h"
 #include "CPU/GenHam.h"
 #include "CPU/simparam.h"
-#include "GPU/lanczos.h"
+#include "CPU/magnetization.h"
+#include "GPU/GPUmagnetization.h"
 #include "../Graphs/graphs.h"
 
 #define HOW_MANY_16 30 
@@ -48,6 +49,7 @@ int main(int argc, char **argv)
     }
 
     double energy;
+    double magnet;
 
     PARAMS prm;  //Read parameters from param.dat  : see simparam.h
     double J;
@@ -63,7 +65,8 @@ int main(int argc, char **argv)
     /*fin >> TypeFlag;
     fin.close();*/
     vector< Graph > fileGraphs;
-    vector< double > WeightHigh;
+    vector< double > EnergyWeightHigh;
+    vector< double > MagnetWeightHigh;
 
     ReadGraphsFromFile( fileGraphs, InputFile);
 
@@ -84,18 +87,19 @@ int main(int argc, char **argv)
     {
         h = hh;
 
-        WeightHigh.push_back( -h ); //Weight for site zero
-        double RunningSumHigh = WeightHigh[ 0 ];
+        EnergyWeightHigh.push_back( -h ); //Weight for site zero
+        MagnetWeightHigh.push_back( 1. ); //Weight for site zero
+        double EnergyRunningSumHigh = EnergyWeightHigh[ 0 ];
+        double MagnetRunningSumHigh = MagnetWeightHigh[ 0 ];
 
         d_hamiltonian* HamilLancz = (d_hamiltonian*) malloc(HOW_MANY_16 * sizeof( d_hamiltonian ) );
-        parameters* data = (parameters*) malloc( HOW_MANY_16 * sizeof( parameters ) );
-        double** groundstates = (double**) malloc( HOW_MANY_16 * sizeof( double* ) );
-        double** eigenvalues = (double**) malloc( HOW_MANY_16 * sizeof( double* ) );
-        eigenvalues[ 0 ] = (double*) malloc( HOW_MANY_16 * sizeof( double ) );
+        parameters* data          = (parameters*) malloc( HOW_MANY_16 * sizeof( parameters ) );
+        double** groundstates     = (double**) malloc( HOW_MANY_16 * sizeof( double* ) );
+        double** eigenvalues      = (double**) malloc( HOW_MANY_16 * sizeof( double* ) );
+        double* magnetarray       = (double*) malloc( HOW_MANY_16 * sizeof(double* ) );
         int* NumElem = (int*) malloc( HOW_MANY_16 * sizeof( int ) );
-        int** Bonds = (int**) malloc( HOW_MANY_16 * sizeof( int* ) );
+        int** Bonds  = (int**) malloc( HOW_MANY_16 * sizeof( int* ) );
         unsigned int GPUqueue[HOW_MANY_16];
-
 
         int GPUprocessed = 0;
         int GPUmax = HOW_MANY_16;
@@ -128,6 +132,7 @@ int main(int argc, char **argv)
                 data[ GPUprocessed ].J1 = 4*J;
                 data[ GPUprocessed ].J2 = h;
                 data[ GPUprocessed ].modelType = 2;
+                eigenvalues[ GPUprocessed ] = (double*) malloc( sizeof( double ) );
                 i++;
                 /*cudaEvent_t start, stop;
                 cudaEventCreate(&start);
@@ -141,6 +146,7 @@ int main(int argc, char **argv)
             {
                 ConstructSparseMatrix( GPUprocessed, Bonds, HamilLancz, data, NumElem, 0);
                 lanczos( GPUprocessed, NumElem, HamilLancz, groundstates, eigenvalues, 200, 1, 1e-12);
+                GPUmagnetization( GPUprocessed, HamilLancz, data, groundstates, magnetarray);
                 /*cudaEventRecord(stop, 0);
                 cudaEventSynchronize(stop);
                 cudaEventElapsedTime(&time, start, stop);
@@ -151,11 +157,17 @@ int main(int argc, char **argv)
                 for( int j = 0; j < GPUprocessed; j++ )
                 {
                     energy = eigenvalues[ j ][ 0 ];
-                    WeightHigh.push_back( energy );
+                    magnet = magnetarray[ j ];
+                    EnergyWeightHigh.push_back( energy );
+                    MagnetWeightHigh.push_back( magnet );
+                    
                     for ( unsigned int k = 0; k < fileGraphs[ GPUqueue[j] ].SubgraphList.size(); k++ )
-                        WeightHigh.back() -= fileGraphs[ GPUqueue[j] ].SubgraphList[ k ].second * WeightHigh[ fileGraphs[ GPUqueue[i] ].SubgraphList[ k ].first ];
-
-                    RunningSumHigh += fileGraphs[ GPUqueue[j] ].LatticeConstant * WeightHigh.back();
+                    {
+                        EnergyWeightHigh.back() -= fileGraphs[ GPUqueue[j] ].SubgraphList[ k ].second * EnergyWeightHigh[ fileGraphs[ GPUqueue[i] ].SubgraphList[ k ].first ];
+                        MagnetWeightHigh.back() -= fileGraphs[ GPUqueue[j] ].SubgraphList[ k ].second * MagnetWeightHigh[ fileGraphs[ GPUqueue[i] ].SubgraphList[ k ].first ];
+                    }
+                    EnergyRunningSumHigh += fileGraphs[ GPUqueue[j] ].LatticeConstant * EnergyWeightHigh.back();
+                    MagnetRunningSumHigh += fileGraphs[ GPUqueue[j] ].LatticeConstant * MagnetWeightHigh.back();
                 }
                 GPUprocessed = 0;
                 //free(Bonds[0]);
@@ -179,20 +191,26 @@ int main(int argc, char **argv)
                 HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
             
                 energy = lancz.Diag( HV, 1, 1, eVec ); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
-            
-                WeightHigh.push_back( energy );
+                magnet = Magnetization( eVec, fileGraphs[ i ].Order);
+                EnergyWeightHigh.push_back( energy );
+                MagnetWeightHigh.push_back( magnet );
                 for ( unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++ )
-                    WeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * WeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
-
-                RunningSumHigh += fileGraphs[ i ].LatticeConstant * WeightHigh.back();
+                {
+                    EnergyWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * EnergyWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+                    MagnetWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * MagnetWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+                }
+                EnergyRunningSumHigh += fileGraphs[ i ].LatticeConstant * EnergyWeightHigh.back();
+                MagnetRunningSumHigh += fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back();
                 i++;
             }
         } 
         fout<<"h= "<<h<<" J= "<<J;
-        fout <<" Energy= "<< RunningSumHigh<<endl;
+        fout <<" Energy= "<< EnergyRunningSumHigh<<" Magnetization= "<<MagnetRunningSumHigh<<endl;
 
-        WeightHigh.clear();
-        RunningSumHigh=0;
+        EnergyWeightHigh.clear();
+        MagnetWeightHigh.clear();
+        EnergyRunningSumHigh=0;
+        MagnetRunningSumHigh=0;
     
     }
     

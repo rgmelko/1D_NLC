@@ -123,40 +123,40 @@ __host__ void ConstructSparseMatrix( const int howMany, int** Bond, d_hamiltonia
         case 0: //2D spin 1/2 Heisenberg
         case 1: //2D spin 1/2 XY
             numElem[i] = 0;
-            stride[i] = 4*data[i].nsite + 1;
+            stride[i] = 4 * data[i].nsite + 1;
 
             d_H[i].fullDim = 2;
-            for (int ch=1; ch<data[i].nsite; ch++) d_H[i].fullDim *= 2;
+            for (int ch = 1; ch < data[i].nsite; ch++) d_H[i].fullDim *= 2;
             break;
         case 2: //1D Transverse Field Ising Model
             numElem[i] = 0;
-            stride[i] = 2*data[i].nsite + 1;
+            stride[i]  = 2 * data[i].nsite + 1;
 
             d_H[i].fullDim = 2;
-            for (int ch=1; ch<data[i].nsite; ch++) d_H[i].fullDim *= 2;
+            for (int ch = 1; ch < data[i].nsite; ch++) d_H[i].fullDim *= 2;
             break;
         }
 
-        basisPosition[i] = (int*)malloc(d_H[i].fullDim*sizeof(int));
-        basis[i] = (int*)malloc(d_H[i].fullDim*sizeof(int));
+        basisPosition[i] = (int*)malloc(d_H[i].fullDim * sizeof(int));
+        basis[i] = (int*)malloc(d_H[i].fullDim * sizeof(int));
 
         d_H[i].sectorDim = GetBasis(d_H[i].fullDim, data[i], basisPosition[i], basis[i]);
         
-        status[i] = cudaMalloc((void**)&d_basisPosition[i], d_H[i].fullDim*sizeof(int));
+        status[i] = cudaMalloc((void**) &d_basisPosition[i], d_H[i].fullDim * sizeof(int));
         
         if (status[i] != cudaSuccess)
         {
             cout<<"Error allocating "<<i<<"th d_basisPosition array: "<<cudaGetErrorString(status[i])<<endl;
         }
         
-        status[i] = cudaMalloc((void**)&d_basis[i], d_H[i].sectorDim*sizeof(int));
+        status[i] = cudaMalloc((void**) &d_basis[i], d_H[i].sectorDim * sizeof(int));
 
         if (status[i] != cudaSuccess)
         {
             cout<<"Error allocating "<<i<<"th d_basis array: "<<cudaGetErrorString(status[i])<<endl;
         }
 
-        status[i] = cudaStreamCreate(&stream[i]);
+        status[i] = cudaStreamCreate( &stream[i] );
 
         if (status[i] != cudaSuccess)
         {

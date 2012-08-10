@@ -28,15 +28,20 @@ int main(int argc, char** argv){
     int CurrentArg = 1;
     string InputFile;
     string OutputFile = "output_2d.dat";
+    bool MagFlag = false;
     while (CurrentArg < argc)
     {
-        if (argv[ CurrentArg ] == string("-i") || argv[ CurrentArg ] == string("--input") )
+        if (argv[ CurrentArg ] == string("-i") || argv[ CurrentArg ] == string("--input"))
         {
             InputFile = string(argv[ CurrentArg + 1 ]);
         }
         if (argv[ CurrentArg ] == string("-o") || argv[ CurrentArg ] == string("--output"))
         {
             OutputFile = string(argv[ CurrentArg + 1 ]);
+        }
+        if (argv[ CurrentArg ] == string("-m") || argv[ CurrentArg ] == string("--mag"))
+        {
+            MagFlag = true;
         }
         CurrentArg++;
     }
@@ -66,7 +71,7 @@ int main(int argc, char** argv){
     
     J=1.;
     
-    for(double hh = 1; hh < 3; hh += 2.){
+    for(double hh = 1; hh < 11; hh += 2.){
       h = hh;
       
       EnergyWeightHigh.push_back(-h); //Weight for site zero
@@ -82,16 +87,23 @@ int main(int argc, char** argv){
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
-        energy = lancz.Diag(HV, 1, 2, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
-        chi = Magnetization(eVec, fileGraphs.at(i).Order);
-        eVec.clear();
+        if(MagFlag)
+        {
+            energy = lancz.Diag(HV, 1, 2, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+            chi = Magnetization(eVec, fileGraphs.at(i).Order);
+            eVec.clear();
+            MagnetWeightHigh.push_back(chi);
+        }
+        else
+        {
+            energy = lancz.Diag(HV, 1, 1, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
+        }
         EnergyWeightHigh.push_back(energy);
-        MagnetWeightHigh.push_back(chi);
 
         for (unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++)
         {
 	        EnergyWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * EnergyWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
-	        MagnetWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * MagnetWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
+	        if( MagFlag ) MagnetWeightHigh.back() -= fileGraphs[ i ].SubgraphList[ j ].second * MagnetWeightHigh[ fileGraphs[ i ].SubgraphList[ j ].first ];
         }
 	//        cout<<"WeightHigh["<<i<<"] = "<<WeightHigh.back()<<endl;
         EnergyRunningSumHigh += fileGraphs[ i ].LatticeConstant * EnergyWeightHigh.back();
@@ -99,16 +111,18 @@ int main(int argc, char** argv){
         //cout<<"Magnetization for this cluster: "<<chi<<endl;
 	    //cout<<"Energy for this cluster: "<<energy<<endl;
         //cout<<"Magnetization Weight High: "<<MagnetWeightHigh.back()<<endl;
-        if (fabs(fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back()) > 1.0)
+        if (MagFlag && fabs(fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back()) > 1.0)
         {
             fout<<"In the "<<fileGraphs.at(i).Identifier<<"th graph, magnetization weight of "<<fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back()<<endl;
         }
-        MagnetRunningSumHigh += fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back();
-	    cout<<"h = "<<hh<<" J = "<<J<<" Energy Running Sum: "<<EnergyRunningSumHigh<<" Magnet Running Sum: "<<MagnetRunningSumHigh<<endl;
+        if (MagFlag) MagnetRunningSumHigh += fileGraphs[ i ].LatticeConstant * MagnetWeightHigh.back();
+	    cout<<"h = "<<hh<<" J = "<<J<<" Energy Running Sum: "<<EnergyRunningSumHigh<<endl;
+        if (MagFlag) cout<<" Magnet Running Sum: "<<MagnetRunningSumHigh<<endl;
       }
       
       fout<<"h= "<<h<<" J= "<<J;	
-      fout <<" Energy= "<< EnergyRunningSumHigh<<" Magnet= "<<MagnetRunningSumHigh<<endl;
+      fout <<" Energy= "<< EnergyRunningSumHigh<<endl;
+      if(MagFlag) fout<<" Magnet= "<<MagnetRunningSumHigh<<endl;
       
       EnergyWeightHigh.clear();
       MagnetWeightHigh.clear();

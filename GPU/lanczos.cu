@@ -670,13 +670,18 @@ __host__ void lanczos(const int howMany, const int* numElem, d_hamiltonian*& Ham
         }
     }
 
-
+    cout<<"Done finding the eigenvalues"<<endl;
     //-------------Get groundstates------------------------------------------
 
     for( int i = 0; i < howMany; i++)
     {
         //cudaStreamSynchronize(stream[i]);
-        //GetGroundstate<<<dim[i]/512 + 1, 512, 0, stream[i]>>>(groundstates[i], lanczosStore[i], d_H_eigen[i], iter[i], dim[i]);
+        status[i] = cudaMalloc(&groundstates[i], dim[i]*sizeof(double));
+        if( status[i] != cudaSuccess)
+        {
+            cout<<"Error allocating space for eigenvectors: "<<cudaGetErrorString(status[i]);
+        }
+        GetGroundstate<<<dim[i]/512 + 1, 512, 0, stream[i]>>>(groundstates[i], lanczosStore[i], d_H_eigen[i], iter[i], dim[i]);
     }
 
     //--------------Free arrays to prevent memory leaks------------------------
@@ -734,15 +739,16 @@ __host__ void lanczos(const int howMany, const int* numElem, d_hamiltonian*& Ham
     //----------Output groundstate to file to check for correctness------
 
     double* host_groundstate = (double*)malloc(dim[0]*sizeof(double));
-    /*std::ofstream fout;
+    std::ofstream fout;
     fout.open("lanczos.log");
     cudaMemcpy(host_groundstate, groundstates[0], dim[0]*sizeof(double), cudaMemcpyDeviceToHost);
+    cout<<"Outputting GS to file"<<endl;
     for(int i = 0; i < dim[0] ; i++)
     {
         fout<<host_groundstate[i]<<std::endl;
     }
 
-    fout.close();*/
+    fout.close();
     free(host_groundstate);
     free(dim);
     if (cublasStatus[0] != CUBLAS_STATUS_SUCCESS)

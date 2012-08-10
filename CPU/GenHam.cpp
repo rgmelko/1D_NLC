@@ -2,12 +2,33 @@
 
 //----------------------------------------------------------
 GENHAM::GENHAM(const int Ns, const long double J_, const long double h_, vector <pair<int,int> > BBond_, bool Field)  
-  : JJ(J_), hh(h_), Bond(BBond_)
 //create bases and determine dim of full Hilbert space
 {
+
+  hh = h_;
+  JJ = J_;
+  Bond = BBond_;
   unsigned int Dim;
   Nsite = Ns;
   LowField = Field;
+
+  if( !LowField ) ConnectCount.resize(Ns);
+  else{
+    int max = 0;
+    for (unsigned int CurrentBond = 0; CurrentBond < BBond_.size(); CurrentBond++)
+    {
+        max = (BBond_[CurrentBond].first > max) ? BBond_[CurrentBond].first : max;
+        max = (BBond_[CurrentBond].second > max) ? BBond_[CurrentBond].second : max;
+    }
+    ConnectCount.resize(max);
+  }
+
+  ConnectCount.assign(ConnectCount.size(), 0);
+  for (unsigned int CurrentBond = 0; CurrentBond < BBond_.size(); CurrentBond++)
+  {
+    ConnectCount[BBond_[CurrentBond].first]++;
+    ConnectCount[BBond_[CurrentBond].second]++;
+  }
 
   Dim = 2;  //  S=1/2 models : two states
   for (int ch = 1; ch < Nsite; ch++) Dim *= 2;
@@ -128,10 +149,10 @@ double GENHAM::HdiagPart(const long bra, int Sites){
   for (unsigned int Ti = 0; Ti < Bond.size(); Ti++){
     //***HEISENBERG PART
 
-    T0 = Bond[Ti].first; //T0 = Bond(Ti,0); //lower left spin
+    T0 = Bond[Ti].first; //First site through the bond
     S0b = (bra>>T0)&1;  
     //if (T0 != Ti) cout<<"Square error 3\n";
-    T1 = Bond[Ti].second; //T1 = Bond(Ti,1); //first bond
+    T1 = Bond[Ti].second; //Second site through the bond
     S1b = (bra>>T1)&1;  //unpack bra
 
     valH += -JJ*2*(S0b-0.5)*2*(S1b-0.5);
@@ -142,9 +163,15 @@ double GENHAM::HdiagPart(const long bra, int Sites){
   T1 = Sites-1;
   S0b = (bra>>T0)&1;
   S1b = (bra>>T1)&1;
-  if(LowField){ valH += -JJ*2*((S0b-0.5) + (S1b-0.5)); }
+  if(LowField){ 
+    //valH += -JJ*2*((S0b-0.5) + (S1b-0.5)); 
+    for(unsigned int i = 0; i < ConnectCount.size(); i++)
+    {
+        valH += (4 - ConnectCount[i])*2*(-JJ)*( ((bra>>i)&1) - 0.5);
+    }
+  
+  }
 
-  //cout<<bra<<" "<<valH<<endl;
 
   return valH;
 
