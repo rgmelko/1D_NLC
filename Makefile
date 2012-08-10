@@ -1,6 +1,6 @@
 OBJS = NLC_1D_TFIM.o GenHam.o Lanczos_07.o graphs.o #Lattice_16B.cpp
 CC = g++
-CFLAGS = -O2 
+CFLAGS = -O2 -fopenmp -Wall -Wextra --pedantic
 #CFLAGS = -O2 -arch x86_64
 #LIBS = -lm -framework veclib
 
