@@ -71,19 +71,19 @@ int main(int argc, char** argv){
     
     J=1.;
     
-    for(double hh = 1; hh < 11; hh += 2.){
+    for(double hh = 1; hh < 5; hh += 2.){
       h = hh;
       
       EnergyWeightHigh.push_back(-h); //Weight for site zero
       MagnetWeightHigh.push_back(1.);
+      
       double EnergyRunningSumHigh = EnergyWeightHigh[0];      
       double MagnetRunningSumHigh = MagnetWeightHigh[0];      
       
       for (unsigned int i=1; i<fileGraphs.size(); i++){ //skip the zeroth graph
-	
-	
-	//---High-Field---
-	    GENHAM HV(fileGraphs.at(i).Order, J, h, fileGraphs.at(i).AdjacencyList, fileGraphs.at(i).LowField); 
+        //---High-Field---
+
+        GENHAM HV(fileGraphs.at(i).Order, J, h, fileGraphs.at(i).AdjacencyList, fileGraphs.at(i).LowField); 
 
         LANCZOS lancz(HV.Vdim);  //dimension of reduced Hilbert space (Sz sector)
         HV.SparseHamJQ();  //generates sparse matrix Hamiltonian for Lanczos
@@ -98,6 +98,7 @@ int main(int argc, char** argv){
         {
             energy = lancz.Diag(HV, 1, 1, eVec); // Hamiltonian, # of eigenvalues to converge, 1 for -values only, 2 for vals AND vectors
         }
+        cout<<"Energy: "<<energy<<endl;
         EnergyWeightHigh.push_back(energy);
 
         for (unsigned int j = 0; j < fileGraphs[ i ].SubgraphList.size(); j++)
