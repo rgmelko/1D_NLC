@@ -12,7 +12,7 @@ GENHAM::GENHAM(const int Ns, const long double J_, const long double h_, vector 
   Nsite = Ns;
   LowField = Field;
 
-  if( !LowField ) ConnectCount.resize(Ns);
+  if( !LowField ) ConnectCount.resize(Ns, 0);
   else{
     int max = 0;
     for (unsigned int CurrentBond = 0; CurrentBond < BBond_.size(); CurrentBond++)
@@ -20,32 +20,31 @@ GENHAM::GENHAM(const int Ns, const long double J_, const long double h_, vector 
         max = (BBond_[CurrentBond].first > max) ? BBond_[CurrentBond].first : max;
         max = (BBond_[CurrentBond].second > max) ? BBond_[CurrentBond].second : max;
     }
-    ConnectCount.resize(max);
+    ConnectCount.resize(max + 1, 0);
+    Nsite = max + 1;
   }
 
-  ConnectCount.assign(ConnectCount.size(), 0);
-  for (unsigned int CurrentBond = 0; CurrentBond < BBond_.size(); CurrentBond++)
+  for (unsigned int CurrentBond = 0; CurrentBond < Bond.size(); CurrentBond++)
   {
-    ConnectCount[BBond_[CurrentBond].first]++;
-    ConnectCount[BBond_[CurrentBond].second]++;
+    ConnectCount[Bond[CurrentBond].first]++;
+    ConnectCount[Bond[CurrentBond].second]++;
   }
 
   Dim = 2;  //  S=1/2 models : two states
   for (int ch = 1; ch < Nsite; ch++) Dim *= 2;
 
-  BasPos.resize(Dim,-1); //initialization 
-
+  BasPos.resize(Dim, -1); //initialization 
+  Basis.resize(Dim);
   Vdim=0;
   unsigned long temp;    //create basis (16 site cluster)
 
   for (unsigned int i1 = 0; i1 < Dim; i1++) 
   {
       temp = 0;
-      for (int sp =0; sp<Nsite; sp++)
-          temp += (i1>>sp)&1;  //unpack bra
-          Basis.push_back(i1);
-          BasPos.at(i1)=Basis.size()-1;
-          Vdim++;
+      for (int sp = 0; sp < Nsite; sp++){ temp += (i1>>sp)&1; } //unpack bra
+      Basis[ i1 ] = i1;
+      BasPos.at( i1 ) = i1;
+      Vdim++;
   }//Dim
 
   //cout<<"Vdim "<<Vdim<<" "<<Dim<<endl;
@@ -61,8 +60,8 @@ void GENHAM::printg()
 
   for (unsigned int i = 0; i < PosHam.size(); i++){
     //cout<<PosHam[i][0]<<" * ";
-    cout<<i+1<<" * ";
-    for (int j = 0; j <= PosHam[i][0]; j++){
+    cout<<"Row: "<<i+1<<" : ";
+    for (int j = 1; j <= PosHam[i][0]; j++){
       cout<<"("<<PosHam[i][j]+1<<","<<ValHam[i][j]<<") ";
     }
     cout<<endl;
