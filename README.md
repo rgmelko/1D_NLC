@@ -7,6 +7,7 @@ Developed by [Roger Melko](http://github.com/rgmelko), [Ann Kallin](http://githu
 
 This project aims to provide a free implementation of the [Numerical Linked Cluster Expansion](http://arxiv.org/abs/0706.3254) technique developed by Rajiv Singh, Tyler Bryant, and Marcos Rigol. It is written in C++. The application has two possible run-modes: CPU only, and CPU-GPU. In the second, large clusters are handled using a GPGPU code written in [CUDA](http://www.nvidia.com/object/cuda_home_new.html). 
 
+Documentation can be found [here](http://kshyatt.github.com/1D_NLC/).
 
 Installation
 ============
